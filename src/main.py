@@ -1,10 +1,14 @@
 """A tool to audit the behavior of apps and their compliance with defined security rules."""
+import os
+import platform
 import time
 import tomllib
 from pathlib import Path
 
 from src import utils
 from src.custom_exceptions.custom_exception import InvalidProjectConfigurationError
+from src.process_handler import ProcessSnapshot
+from src.process_handler.process_handler import AuditedProcess
 
 
 def get_project_config(fp: Path = utils.project_root / 'config' / 'project_config.toml'):
@@ -16,6 +20,8 @@ def get_project_config(fp: Path = utils.project_root / 'config' / 'project_confi
     for key, val in config.items():
         if val == "None":
             config[key] = None
+
+    config.setdefault('os', platform.system())
     return config
 
 def main(rules_engine, cli_arg_parser, process_handler) -> int:
@@ -26,29 +32,23 @@ def main(rules_engine, cli_arg_parser, process_handler) -> int:
     - Periodically check compliance
     - Record output
     """
-    # get rules to track using args
-    try:
-        active_rules = rules_engine.filter_rules(rules_engine.get_rules(), cli_arg_parser.get_rules_args())
-        # Attach python to the process. Start the process if required.
-        process = process_handler.attach_to_process(cli_arg_parser.get_process_args())
+    process_args = cli_arg_parser.get_process_args()
+    process_interval = cli_arg_parser.get_interval_arg()
+    time_limit = cli_arg_parser.get_time_limit_arg()
 
-        process_interval = cli_arg_parser.get_interval_arg()
-        time_limit = cli_arg_parser.get_time_limit_arg()
-    except (InvalidCliErr) as err:
-        print(err)
-        return 1
-    except (ProcessCreationErr, ProcessAttachmentErr) as err:
-        print(err)
-        return 1
-    # begin auditing process
+    active_rules = rules_engine.filter_rules(rules_engine.get_rules(), cli_arg_parser.get_rules_args())
+
+    process_handler.add_process(AuditedProcess(process_args))
+
     try:
         start = time.monotonic()
         while (time_limit is None or time_limit > time.monotonic() - start)\
-                and process.is_alive():
+                and process_handler.num_active() > 0:
             loop_start = time.monotonic()
             try:
+                output: list[ProcessSnapshot] = process_handler.get_snapshot()
                 # Check if the process is violating any rules, record a message if so
-                output = rules_engine.check_compliance(process, active_rules)
+                output = rules_engine.check_compliance(output, active_rules)
                 # format the result to be human readable, and optionally save to file
 
                 result = process_handler.process_compliance_output(output)
