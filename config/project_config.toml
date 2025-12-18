@@ -1,3 +1,5 @@
 [project_config]
 default_process_check_interval = 5
-default_process_time_limit = None
+default_process_time_limit = "None"
+
+rules_path='/rules/rules.toml'

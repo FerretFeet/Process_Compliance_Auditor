@@ -21,3 +21,7 @@ class InvalidCLI_ParserConfigurationError(Exception):
     def __init__(self, msg: str):
         super().__init__(msg)
 
+class InvalidRuleDataError(Exception):
+    """Raised when a TOML rule entry is invalid."""
+    pass
+

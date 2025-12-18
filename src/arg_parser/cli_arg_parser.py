@@ -66,7 +66,7 @@ class CLI_ArgParser():
             else self._get_argument('create-process')
 
 
-    def get_rules_args(self) -> list[str | int]:
+    def get_rules_args(self) -> list[str | int] | None:
         """Return a list of rule names or rule ids, potentially intermingled."""
         return self._get_argument('rules')
 
@@ -78,3 +78,6 @@ class CLI_ArgParser():
         """Return the time interval between audits for this application, in seconds."""
         return self._get_argument('interval')
 
+
+if __name__ == '__main__':
+    cli_arg_parser = CLI_ArgParser()

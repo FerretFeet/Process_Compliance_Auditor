@@ -9,6 +9,8 @@ Contains:
 """
 from dataclasses import dataclass
 
+from src.custom_exceptions.custom_exception import InvalidRuleDataError
+
 
 @dataclass
 class Rule:
@@ -19,5 +21,29 @@ class Rule:
 
     def to_toml(self):
         pass
-    def from_toml(self):
-        pass
+    @classmethod
+    def from_toml(cls, data: dict) -> "Rule":
+        """
+        Create a Rule object from a TOML dictionary.
+
+        Raises:
+            InvalidRuleDataError: If required fields are missing or invalid.
+        """
+        try:
+            rule_id = data["id"]
+            name = data["name"]
+            message = data["message"]
+            info = data.get("info")  # Optional
+        except KeyError as e:
+            raise InvalidRuleDataError(f"Missing required field: {e}") from e
+
+        if not isinstance(rule_id, int):
+            raise InvalidRuleDataError(f"Rule 'id' must be int, got {type(rule_id).__name__}")
+        if not isinstance(name, str):
+            raise InvalidRuleDataError(f"Rule 'name' must be str, got {type(name).__name__}")
+        if not isinstance(message, str):
+            raise InvalidRuleDataError(f"Rule 'message' must be str, got {type(message).__name__}")
+        if info is not None and not isinstance(info, str):
+            raise InvalidRuleDataError(f"Rule 'info' must be str or None, got {type(info).__name__}")
+
+        return cls(id=rule_id, name=name, message=message, info=info)
