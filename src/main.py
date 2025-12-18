@@ -1,6 +1,19 @@
 """A tool to analyze the behavior of apps and their compliance with defined security rules."""
 import time
+import tomllib
+from pathlib import Path
 
+from src import utils
+from src.custom_exceptions.custom_exception import InvalidProjectConfigurationError
+
+
+def get_project_config(fp: Path = utils.project_root / 'config' / 'project_config.toml'):
+    config = None
+    with Path.open(fp, 'rb') as f:
+        config = tomllib.load(f).get('project_config', None)
+    if not config:
+        raise InvalidProjectConfigurationError()
+    return config
 
 def main(rules_engine, cli_arg_parser, process_handler) -> int:
     """The main function.
@@ -62,9 +75,11 @@ def main(rules_engine, cli_arg_parser, process_handler) -> int:
 
 
 if __name__ == "__main__":
+    project_config = get_project_config()
+
     rules_engine = RulesEngine()
     cli_arg_parser = CLI_ArgParser()
-    process_handler = ProcessHandler()
+    process_handler = ProcessHandler(
 
     main(rules_engine, cli_arg_parser, process_handler)
 
