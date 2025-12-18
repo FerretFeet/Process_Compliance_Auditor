@@ -8,11 +8,14 @@ from src.custom_exceptions.custom_exception import InvalidProjectConfigurationEr
 
 
 def get_project_config(fp: Path = utils.project_root / 'config' / 'project_config.toml'):
-    config = None
+    """Get the global config object."""
     with Path.open(fp, 'rb') as f:
-        config = tomllib.load(f).get('project_config', None)
+        config = tomllib.load(f).get('project_config', {})
     if not config:
         raise InvalidProjectConfigurationError()
+    for key, val in config.items():
+        if val == "None":
+            config[key] = None
     return config
 
 def main(rules_engine, cli_arg_parser, process_handler) -> int:

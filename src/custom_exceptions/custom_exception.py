@@ -12,8 +12,12 @@ class InvalidRuleException(Exception):
         super().__init__(full_msg)
 
 class InvalidProjectConfigurationError(Exception):
-    def __init__(self, err: Exception | None):
+    def __init__(self, err: Exception | None = None):
         self.original_error = err if err else ''
         msg = f"Invalid project configuration, expect 'project_config' in root/config/project_config.toml: {err}"
+        super().__init__(msg)
+
+class InvalidCLI_ParserConfigurationError(Exception):
+    def __init__(self, msg: str):
         super().__init__(msg)
 
