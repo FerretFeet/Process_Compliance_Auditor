@@ -1,5 +1,5 @@
 [project]
-name = "Process Compliance Analyzer"
+name = "Process Compliance Auditor"
 version = "0.1.0"
 description = "A program to check compliance of rules against a process and generate a readable output."
 requires-python = ">=3.14"

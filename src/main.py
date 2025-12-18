@@ -1,4 +1,4 @@
-"""A tool to analyze the behavior of apps and their compliance with defined security rules."""
+"""A tool to audit the behavior of apps and their compliance with defined security rules."""
 import time
 import tomllib
 from pathlib import Path
@@ -40,7 +40,7 @@ def main(rules_engine, cli_arg_parser, process_handler) -> int:
     except (ProcessCreationErr, ProcessAttachmentErr) as err:
         print(err)
         return 1
-    # begin analyzing process
+    # begin auditing process
     try:
         start = time.monotonic()
         while (time_limit is None or time_limit > time.monotonic() - start)\
