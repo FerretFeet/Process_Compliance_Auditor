@@ -5,20 +5,20 @@ import time
 def main(rules_engine, cli_arg_parser, process_handler) -> int:
     """The main function.
 
-    Load and filter rules based on cli arguments,
-    Attach to process,
-    Periodically check compliance,
-    Record output
+    - Load and filter rules based on cli arguments
+    - Attach to process
+    - Periodically check compliance
+    - Record output
     """
     # get rules to track using args
     try:
-        active_rules = rules_engine.Rules().filter_rules(cli_arg_parser.get_rules_args())
+        active_rules = rules_engine.filter_rules(rules_engine.get_rules(), cli_arg_parser.get_rules_args())
         # Attach python to the process. Start the process if required.
         process = process_handler.attach_to_process(cli_arg_parser.get_process_args())
 
         process_interval = cli_arg_parser.get_interval_arg()
         time_limit = cli_arg_parser.get_time_limit_arg()
-    except (InvalidRuleErr, InvalidCliErr) as err:
+    except (InvalidCliErr) as err:
         print(err)
         return 1
     except (ProcessCreationErr, ProcessAttachmentErr) as err:
