@@ -1,29 +1,14 @@
 """A tool to audit the behavior of apps and their compliance with defined security rules."""
-import os
-import platform
 import time
-import tomllib
-from pathlib import Path
 
-from src import utils
-from src.custom_exceptions.custom_exception import InvalidProjectConfigurationError
+from src.arg_parser.cli_arg_parser import CLI_ArgParser
 from src.process_handler import ProcessSnapshot
-from src.process_handler.process_handler import AuditedProcess
+from src.process_handler.process_handler import AuditedProcess, ProcessHandler
 from src.rules_engine import FactSheet
+from src.rules_engine.rules_engine import RulesEngine
+from src.services import logger
+from src.utils.get_project_config import get_project_config
 
-
-def get_project_config(fp: Path = utils.project_root / 'config' / 'project_config.toml'):
-    """Get the global config object."""
-    with Path.open(fp, 'rb') as f:
-        config = tomllib.load(f).get('project_config', {})
-    if not config:
-        raise InvalidProjectConfigurationError()
-    for key, val in config.items():
-        if val == "None":
-            config[key] = None
-
-    config.setdefault('os', platform.system())
-    return config
 
 def main(rules_engine, cli_arg_parser, process_handler) -> int:
     """The main function.
@@ -60,6 +45,7 @@ def main(rules_engine, cli_arg_parser, process_handler) -> int:
     except KeyboardInterrupt:
         #Do whatever i need to safely handle this
         # allow multiple interrupts? Daemon mode?
+        logger.info(f'Keyboard Interrupt, Shutting down')
     finally:
         if cli_arg_parser.get_create_process_flag():
             # python created the process
@@ -76,7 +62,7 @@ if __name__ == "__main__":
 
     rules_engine = RulesEngine()
     cli_arg_parser = CLI_ArgParser()
-    process_handler = ProcessHandler(
+    process_handler = ProcessHandler()
 
     main(rules_engine, cli_arg_parser, process_handler)
 

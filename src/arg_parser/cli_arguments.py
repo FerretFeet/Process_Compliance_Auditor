@@ -3,11 +3,11 @@ import argparse
 from dataclasses import dataclass
 from typing import Callable, Any
 
-import src
 from src.custom_exceptions.custom_exception import InvalidCLI_ParserConfigurationError
+from src.utils.get_project_config import get_project_config
 
-default_interval = src.PROJECT_CONFIG.get("default_process_check_interval")
-default_time_limit = src.PROJECT_CONFIG.get("default_process_time_limit")
+default_interval = get_project_config().get("default_process_check_interval")
+default_time_limit = get_project_config().get("default_process_time_limit")
 
 def _rule_type(x):
     """Convert to int if eligible."""

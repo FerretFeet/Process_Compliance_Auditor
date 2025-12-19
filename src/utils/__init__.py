@@ -1,1 +1,1 @@
-from paths import project_root
+from .paths import project_root

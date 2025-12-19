@@ -1,6 +1,4 @@
 """Custom Exceptions"""
-from src import rules_engine
-
 
 class InvalidRuleException(Exception):
     def __init__(self, err: Exception, rule_id: int, msg: str = "Invalid rule"):

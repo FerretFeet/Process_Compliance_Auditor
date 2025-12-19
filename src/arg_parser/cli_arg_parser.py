@@ -1,20 +1,19 @@
 """Argument Parser for Cli Arguments."""
 import argparse
-from dataclasses import dataclass
 from typing import Callable, Any
 
-import src
-from src.arg_parser.cli_arguments import CliArguments
-from src.custom_exceptions.custom_exception import InvalidRuleException, InvalidCLI_ParserConfigurationError
+from src.arg_parser.cli_arguments import CliArguments, _CliArgument
+from src.custom_exceptions.custom_exception import InvalidCLI_ParserConfigurationError
 
 default_check_interval = "default_process_check_interval"
 
+defl_cli_args: list[_CliArgument] = CliArguments.cli_arguments.copy()
 
 class CLI_ArgParser():
     """Argument parser for the application's CLI arguments."""
 
 
-    def __init__(self):
+    def __init__(self, cli_arguments: list[_CliArgument] = defl_cli_args) -> None:
         """Initialize the CLI argument parser with parsed CLI arguments."""
         cli_arguments = CliArguments.cli_arguments.copy()
         self.parser = argparse.ArgumentParser()

@@ -6,7 +6,7 @@ from typing import Dict, Callable
 
 from src import rules_engine
 from src.custom_exceptions.custom_exception import InvalidRuleException, InvalidRuleDataError, InvalidRuleExc
-from src.main import get_project_config
+from src.utils.get_project_config import get_project_config
 from src.process_handler import ProcessSnapshot
 from src.rules_engine import Rule
 from src.rules_engine.fact_sheet import FactSheet
@@ -120,7 +120,7 @@ class RulesEngine:
         logger.info(msg)
         return result
 
-    def check_complaince(self, fact_sheets: list[FactSheet], active_rules: dict[int, rules_engine.Rule])\
+    def check_compliance(self, fact_sheets: list[FactSheet], active_rules: dict[int, rules_engine.Rule])\
             -> list[dict[int, list[FailEvent]]]:
         """Compare facts to rules."""
         final_result = []
