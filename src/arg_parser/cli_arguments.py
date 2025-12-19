@@ -22,7 +22,8 @@ class _CliArgument:
     nargs: str | None = None
     default: str = None
 
-    def get_flags(self):
+    def get_flags(self) -> tuple[str, ...]:
+        """Get the flags for this argument as a tuple"""
         return (
             (self.name_or_flags,)
             if isinstance(self.name_or_flags, str)
@@ -30,6 +31,7 @@ class _CliArgument:
         )
 
     def to_kwargs(self) -> dict[str, Any]:
+        """For use in argparser."""
         kwargs = {
             "type": self.type,
             "help": self.help,
