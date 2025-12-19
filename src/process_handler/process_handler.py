@@ -34,6 +34,13 @@ class ProcessHandler:
         """Return a snapshot of all tracked processes."""
         return [process.snapshot() for process in self.processes]
 
+    def shutdown_all(self):
+        for process in self.processes:
+            process.shutdown()
+
+    def detach_all(self):
+        self.processes = []
+
 
 if __name__ == "__main__":
     process_handler = ProcessHandler()

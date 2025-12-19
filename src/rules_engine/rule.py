@@ -7,7 +7,9 @@ Contains:
     info: Optional additional information
 
 """
-from dataclasses import dataclass
+import operator
+from dataclasses import dataclass, field
+from typing import Optional, Callable
 
 from src.custom_exceptions.custom_exception import InvalidRuleDataError
 
@@ -18,6 +20,42 @@ class Rule:
     name: str
     message: str
     info: str
+    evaluator: Optional[Callable] = field(default=None)
+
+    def parse_condition(self) -> Optional[Callable[[dict], bool]]:
+        """
+           Parse a simple string condition like "cpu_percent < 80", "status == "running"" into a function.
+           Returns None if parsing fails.
+           """
+        info = self.info
+        OPS = {
+            "<": operator.lt,
+            "<=": operator.le,
+            ">": operator.gt,
+            ">=": operator.ge,
+            "==": operator.eq,
+            "!=": operator.ne
+        }
+
+
+        try:
+            field, op_str, value = info.strip().split()
+            op = OPS[op_str]
+            # Try int first, fallback to float
+            try:
+                value = int(value)
+            except ValueError:
+                try:
+                    value = float(value)
+                except ValueError:
+                    if value.startswith('"') and value.endswith('"'):
+                        value = value[1:-1]
+                    value = str(value)
+            return lambda facts: (
+                op(facts.get(field, value), value) if facts.get(field) is not None else False
+            )
+        except Exception:
+            return None
 
     def to_toml(self):
         pass

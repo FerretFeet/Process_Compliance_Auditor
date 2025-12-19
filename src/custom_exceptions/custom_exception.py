@@ -11,6 +11,10 @@ class InvalidRuleException(Exception):
             full_msg += f" ({err})"
         super().__init__(full_msg)
 
+class InvalidRuleExc(Exception):
+    def __init__(self, msg:str):
+        super().__init__(msg)
+
 class InvalidProjectConfigurationError(Exception):
     def __init__(self, err: Exception | None = None):
         self.original_error = err if err else ''
