@@ -2,6 +2,7 @@
 import time
 
 from src.arg_parser.cli_arg_parser import CLI_ArgParser
+from src.compliance_engine import ComplianceEngine
 from src.process_handler import ProcessSnapshot
 from src.process_handler.process_handler import AuditedProcess, ProcessHandler
 from src.rules_engine import FactSheet
@@ -10,7 +11,7 @@ from src.services import logger
 from src.utils.get_project_config import get_project_config
 
 
-def main(rules_engine, cli_arg_parser, process_handler) -> int:
+def main(*, rules_engine, compliance_engine, cli_arg_parser, process_handler) -> int:
     """The main function.
 
     - Load and filter rules based on cli arguments
@@ -35,7 +36,7 @@ def main(rules_engine, cli_arg_parser, process_handler) -> int:
             ps_output: list[ProcessSnapshot] = process_handler.get_snapshot()
             facts = [FactSheet(o) for o in ps_output]
 
-            output = rules_engine.check_compliance(facts, active_rules)
+            output = compliance_engine.run(active_rules, facts)
             # do other things with the result besides logging
             print(output)
 
@@ -59,11 +60,16 @@ def main(rules_engine, cli_arg_parser, process_handler) -> int:
 
 if __name__ == "__main__":
     project_config = get_project_config()
-
+    compliance_engine = ComplianceEngine()
     rules_engine = RulesEngine()
     cli_arg_parser = CLI_ArgParser()
     process_handler = ProcessHandler()
 
-    main(rules_engine, cli_arg_parser, process_handler)
+    main(
+        rules_engine=rules_engine,
+        compliance_engine=compliance_engine,
+        cli_arg_parser=cli_arg_parser,
+        process_handler=process_handler
+    )
 
 

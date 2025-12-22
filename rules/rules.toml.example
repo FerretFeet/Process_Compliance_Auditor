@@ -1,0 +1,36 @@
+name = "vip_access"
+description = "VIP users only"
+group = "user"
+mutually_exclusive_group = "premium_vip"
+condition = "membership == 'vip'"
+action = "Grant access to VIP users"
+
+
+name = "special_access"
+description = "Adult users with premium or VIP membership in allowed regions"
+group = "user"
+mutually_exclusive_group = "membership_check"
+action = "Grant access"
+
+# Top-level condition is an AND group
+[condition]
+operator = "all"
+
+# First condition: user must be adult
+[[condition.conditions]]
+condition = "age >= 18"
+
+# Second condition: OR group for premium or VIP
+[[condition.conditions]]
+operator = "any"
+
+  # Nested conditions inside OR
+  [[condition.conditions.conditions]]
+  condition = "membership == 'premium'"
+
+  [[condition.conditions.conditions]]
+  condition = "membership == 'vip'"
+
+# Third condition: region allowed
+[[condition.conditions]]
+condition = "region in ['US', 'CA', 'EU']"

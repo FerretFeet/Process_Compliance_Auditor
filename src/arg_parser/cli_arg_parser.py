@@ -3,7 +3,7 @@ import argparse
 from typing import Callable, Any
 
 from src.arg_parser.cli_arguments import CliArguments, _CliArgument
-from src.custom_exceptions.custom_exception import InvalidCLI_ParserConfigurationError
+from src.custom_exceptions import InvalidCLI_ParserConfigurationError
 
 default_check_interval = "default_process_check_interval"
 
@@ -55,6 +55,9 @@ class CLI_ArgParser():
             return False
         elif self._get_argument('create-process'):
             return True
+        # FIXME
+        # This line should be unnecessary due to mut-ex group
+        # Dec 21
         msg = (f'Expected either a process ID as first positional argument'
                f' or "create-process" argument.')
         raise InvalidCLI_ParserConfigurationError(msg)
@@ -66,7 +69,7 @@ class CLI_ArgParser():
 
 
     def get_rules_args(self) -> list[str | int] | None:
-        """Return a list of rule names or rule ids, potentially intermingled."""
+        """Return a list of rule_builder names or rule_builder ids, potentially intermingled."""
         return self._get_argument('rules')
 
     def get_time_limit_arg(self) -> int | None:

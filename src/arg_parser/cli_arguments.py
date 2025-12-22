@@ -9,9 +9,9 @@ from src.utils.get_project_config import get_project_config
 default_interval = get_project_config().get("default_process_check_interval")
 default_time_limit = get_project_config().get("default_process_time_limit")
 
-def _rule_type(x):
-    """Convert to int if eligible."""
-    return int(x) if x.isdigit() else x
+# def _rule_type(x):
+#     """Convert to int if eligible."""
+#     return int(x) if x.isdigit() else x
 
 @dataclass
 class _CliArgument:
@@ -68,7 +68,7 @@ class CliArguments:
                      help=f"Time interval in seconds between test checks."
                           f" Default is {default_interval}."
                      ),
-        _CliArgument(name_or_flags=("-r", "--rules"), nargs="+", type=_rule_type,
+        _CliArgument(name_or_flags=("-r", "--rules"), nargs="+", type=str,
                      help="Rule names or ids to test.")
     ]
 

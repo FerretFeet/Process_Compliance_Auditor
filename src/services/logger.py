@@ -14,6 +14,7 @@ def setup_logger(log_path: str = "app.log") -> logging.Logger:
     logger.setLevel(logging.DEBUG)
 
     log_folder = project_root / 'logs'
+    log_folder.mkdir(parents=True, exist_ok=True)
 
     # --- General log (INFO+) ---
     general_handler = RotatingFileHandler(

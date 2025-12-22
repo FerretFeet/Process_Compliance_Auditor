@@ -4,7 +4,7 @@ from src.process_handler import ProcessSnapshot
 class FactSheet:
     """
     An interface to translate a ProcessSnapshot into a dict of audit-friendly facts.
-    This normalizes and flattens data for rule evaluation.
+    This normalizes and flattens data for rule_builder evaluation.
     """
 
     def __init__(self, snapshot: ProcessSnapshot):

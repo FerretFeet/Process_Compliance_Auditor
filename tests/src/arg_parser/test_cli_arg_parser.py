@@ -31,11 +31,6 @@ class TestCLIArgParserArguments:
         parser = CLI_ArgParser()
         assert parser.get_rules_args() == ["rule1", "rule2"]
 
-    def test_rules_argument_mixed_type(self, monkeypatch):
-        monkeypatch.setattr(sys, "argv", ["program", "1234", "-r", "rule1", "rule2", "3"])
-        parser = CLI_ArgParser()
-        assert parser.get_rules_args() == ["rule1", "rule2", 3]
-
     def test_time_limit_argument(self, monkeypatch):
         monkeypatch.setattr(sys, "argv", ["program", "1234", "-t", "100"])
         parser = CLI_ArgParser()
