@@ -1,20 +1,45 @@
 import pathlib
+from typing import Mapping
+
 import pytest
 from unittest.mock import patch, mock_open, MagicMock
 
-from src.rules_engine.rule_builder.rule import Action, Rule
-from src.rules_engine.rules_engine import RulesEngine, InvalidRuleFilterException
+from src.rules_engine.facts.field import FieldRef
+from src.rules_engine.model.condition import Condition
+from src.rules_engine.model.operators import Operator
+from src.rules_engine.model.rule import Action, Rule
+from src.rules_engine.rules_engine import RulesEngine, InvalidRuleFilterException, FactSpecProtocol
+
+
+class MockFact(FactSpecProtocol):
+    def __init__(self, typ, allowed_ops=None, allowed_vals=None):
+
+        self.type = typ
+        self.allowed_operators = allowed_ops or []
+        self.allowed_values = allowed_vals
+
+
+@pytest.fixture
+def mock_fact_provider():
+    def provider() -> Mapping[str, FactSpecProtocol]:
+        return {
+            "cpu_count": MockFact(int, allowed_ops=["==", ">=", "<="], allowed_vals=None),
+
+        }
+    return provider
 
 
 
 @pytest.fixture
 def sample_rule():
+    fake_condition = Condition(FieldRef("cpu_count", int), Operator.EQ, "4")
+
     return Rule(
-        name="adult_check",
-        description="Ensure adult users",
-        condition=MagicMock(),  # Condition or ConditionSet
+        name="cpu_check",
+        description="Count cpus",
+        condition=fake_condition,  # Condition or ConditionSet
         action=Action(name="block_access", execute=lambda facts: facts.update({"blocked": True})),
-        group="user"
+        group="cpu"
     )
 
 
@@ -26,7 +51,7 @@ def toml_data(sample_rule):
                 "name": sample_rule.name,
                 "description": sample_rule.description,
                 "group": sample_rule.group,
-                "condition": "age >= 18",
+                "model": sample_rule.condition.describe(),
                 "action": lambda facts: facts.update({"access_granted": True})
             }
         ]
@@ -34,20 +59,20 @@ def toml_data(sample_rule):
 
 
 
-def test_builtin_rules_loaded(sample_rule):
-    engine = RulesEngine(builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"))
+def test_builtin_rules_loaded(sample_rule, mock_fact_provider):
+    engine = RulesEngine(mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"))
     assert sample_rule.id in engine.rules
     assert engine.rules[sample_rule.id] == sample_rule
 
 
 
-def test_toml_rules_loaded():
+def test_toml_rules_loaded(mock_fact_provider):
     toml_content = """
 [[rules]]
-name = "adult_check"
-description = "Ensure adult users"
-group = "user"
-condition = "age >= 18"
+name = "cpu_check"
+description = "Count cpus"
+group = "cpu"
+model = "cpu_count == 4"
 action = "example"
 """
 
@@ -59,35 +84,38 @@ action = "example"
     # Ensure open is in 'rb' mode as expected by RulesEngine
     m.return_value.__enter__.return_value.read = lambda: toml_bytes
 
-    with patch("pathlib.Path.open", m):
-        engine = RulesEngine(builtin_rules=[], toml_rules_path=pathlib.Path("/fake/path"))
-        loaded_rules = engine.get_rules()  # explicitly call to bypass caching issues
+    with (patch("pathlib.Path.open", m),
+          patch("src.rules_engine.rule_builder.parsers.FactRegistry") as mock_registry
+          ):
+        mock_registry.get.return_value = mock_fact_provider().get("cpu_count")
+        engine = RulesEngine(mock_fact_provider, builtin_rules=[], toml_rules_path=pathlib.Path("/fake/path"))
+        loaded_rules = engine.get_rules()
 
     # Validate that the rule is loaded
     assert len(loaded_rules) == 1
     rule = list(loaded_rules.values())[0]
-    assert rule.name == "adult_check"
-    assert rule.description == "Ensure adult users"
-    assert rule.group == "user"
+    assert rule.name == "cpu_check"
+    assert rule.description == "Count cpus"
+    assert rule.group == "cpu"
 
 
-def test_filter_rules_by_id_and_name(sample_rule):
-    engine = RulesEngine(builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"))
+def test_filter_rules_by_id_and_name(sample_rule, mock_fact_provider):
+    engine = RulesEngine(mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"))
 
-    filtered = engine.filter_rules(engine.rules, [sample_rule.id])
+    filtered = engine.match_rules(engine.rules, [sample_rule.id])
     assert sample_rule.id in filtered
 
-    filtered2 = engine.filter_rules(engine.rules, [sample_rule.name])
+    filtered2 = engine.match_rules(engine.rules, [sample_rule.name])
     assert sample_rule.id in filtered2
 
     with pytest.raises(InvalidRuleFilterException):
-        engine.filter_rules(engine.rules, ["nonexistent-id"])
+        engine.match_rules(engine.rules, ["nonexistent-id"])
 
     with pytest.raises(InvalidRuleFilterException):
-        engine.filter_rules(engine.rules, ["nonexistent-name"])
+        engine.match_rules(engine.rules, ["nonexistent-name"])
 
 
-def test_filter_rules_no_filters_returns_all(sample_rule):
-    engine = RulesEngine(builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"))
-    filtered = engine.filter_rules(engine.rules, None)
+def test_filter_rules_no_filters_returns_all(sample_rule, mock_fact_provider):
+    engine = RulesEngine(mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"))
+    filtered = engine.match_rules(engine.rules, None)
     assert filtered == engine.rules

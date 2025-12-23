@@ -1,7 +1,10 @@
 
 import pytest
-from src.rules_engine.rule_builder.rule import Action, Rule
-from src.rules_engine.rule_builder.condition import Condition, Operator, ConditionSet, GroupOperator, any_of, all_of
+
+from src.rules_engine.facts.field import FieldRef
+from src.rules_engine.model.rule import Action, Rule
+from src.rules_engine.model.condition import Condition, ConditionSet
+from src.rules_engine.model.operators import Operator, GroupOperator
 
 
 class TestActionBase:
@@ -62,7 +65,7 @@ class TestRule(TestActionBase):
         nested_cond = ConditionSet.all(self.condition_set, Condition("z", Operator.NE, "0"))
         rule_nested = Rule(
             name="NestedRule",
-            description="Rule with nested condition sets",
+            description="Rule with nested model sets",
             condition=nested_cond,
             action=self.action
         )
@@ -74,7 +77,7 @@ class TestRule(TestActionBase):
             "name": "adult_check",
             "description": "User must be an adult",
             "group": "builtin",
-            "condition": "age >= 18",
+            "model": "age >= 18",
             "action": "Block access"
         }
 
@@ -97,7 +100,7 @@ class TestRule(TestActionBase):
             "name": "special_access",
             "description": "Adult users with premium or VIP",
             "group": "user",
-            "condition": {
+            "model": {
                 "operator": "all",
                 "conditions": [
                     "age >= 18",
@@ -121,14 +124,14 @@ class TestRule(TestActionBase):
         assert rule.group == "user"
         assert callable(rule.action.execute)
 
-        # Top-level condition
+        # Top-level model
         assert isinstance(rule.condition, ConditionSet)
         assert rule.condition.group_operator == GroupOperator.ALL
 
         # Flattened children
         children = rule.condition.conditions
         assert isinstance(children[0], Condition)
-        assert children[0].field == "age"
+        assert children[0].field == FieldRef(path="age", type=str)
         assert children[0].operator == Operator.GTE
         assert children[0].value == "18"
 
@@ -137,16 +140,16 @@ class TestRule(TestActionBase):
         assert isinstance(nested, ConditionSet)
         assert nested.group_operator == GroupOperator.ANY
         nested_fields = {c.field for c in nested.conditions}
-        assert nested_fields == {"membership"}
+        assert nested_fields == {FieldRef(path="membership", type=str)}
         nested_values = {c.value for c in nested.conditions}
         assert nested_values == {"'premium'", "'vip'"}
 
     def test_from_toml_invalid_condition_raises(self):
         toml_data = {
             "name": "invalid_rule",
-            "description": "Missing condition",
+            "description": "Missing model",
             "group": "user",
-            # condition is missing
+            # model is missing
             "action": "Log something"
         }
 

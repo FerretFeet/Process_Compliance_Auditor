@@ -1,8 +1,9 @@
-
-
-
 import pytest
-from src.rules_engine.rule_builder.condition import Condition, ConditionSet, Operator, GroupOperator, all_of, any_of
+
+from src.rules_engine.rule_builder.combinators import all_of, any_of
+from src.rules_engine.model.condition import Condition, ConditionSet, NotCondition
+from src.rules_engine.model.operators import Operator, GroupOperator
+
 
 class TestConditionBase:
     def setup_method(self):
@@ -70,9 +71,6 @@ class TestConditionSet(TestConditionBase):
         assert isinstance(cs_any, ConditionSet)
         assert cs_any.group_operator == GroupOperator.ANY
 
-
-import pytest
-from src.rules_engine.rule_builder.condition import Condition, ConditionSet, Operator, GroupOperator, NotCondition, all_of, any_of
 
 class TestNotCondition:
 

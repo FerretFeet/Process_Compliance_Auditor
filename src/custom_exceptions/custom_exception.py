@@ -30,9 +30,16 @@ class InvalidProjectConfigurationError(Exception):
         msg = f"Invalid project configuration, expect 'project_config' in root/config/project_config.toml: {err}"
         super().__init__(msg)
 
+class ProcessNotCreatedException(Exception):
+    def __init__(self, msg: str):
+        super().__init__(msg)
 
 
 class InvalidRuleDataError(Exception):
     """Raised when a TOML rule_builder entry is invalid."""
     pass
+
+class RuleWithNoAvailableFactException(Exception):
+    def __init__(self, msg: str):
+        super().__init__(msg)
 

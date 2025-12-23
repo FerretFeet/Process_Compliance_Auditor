@@ -1,5 +1,6 @@
 """Argument Parser for Cli Arguments."""
 import argparse
+from dataclasses import dataclass
 from typing import Callable, Any
 
 from src.arg_parser.cli_arguments import CliArguments, _CliArgument
@@ -7,15 +8,15 @@ from src.custom_exceptions import InvalidCLI_ParserConfigurationError
 
 default_check_interval = "default_process_check_interval"
 
-defl_cli_args: list[_CliArgument] = CliArguments.cli_arguments.copy()
+defl_cli_args: tuple[_CliArgument] = CliArguments.cli_arguments
 
 class CLI_ArgParser():
     """Argument parser for the application's CLI arguments."""
 
 
-    def __init__(self, cli_arguments: list[_CliArgument] = defl_cli_args) -> None:
+    def __init__(self, cli_arguments: tuple[_CliArgument] = defl_cli_args) -> None:
         """Initialize the CLI argument parser with parsed CLI arguments."""
-        cli_arguments = CliArguments.cli_arguments.copy()
+        cli_arguments = list(cli_arguments)
         self.parser = argparse.ArgumentParser()
 
         for group in CliArguments.mutually_exclusive_groups:
@@ -76,10 +77,28 @@ class CLI_ArgParser():
         """Return the time limit for this application, in seconds."""
         return self._get_argument('time-limit')
 
-    def get_interval_arg(self):
+    def get_interval_arg(self) -> int | None:
         """Return the time interval between audits for this application, in seconds."""
         return self._get_argument('interval')
 
+    def get_context(self):
+        return CliContext(
+            process=self.get_process_args(),
+            create_process_flag=self.get_create_process_flag(),
+            interval=self.get_interval_arg(),
+            time_limit=self.get_time_limit_arg(),
+            rules=self.get_rules_args(),
+        )
+
+
+
+@dataclass
+class CliContext:
+    process: list[str] | int
+    create_process_flag: bool
+    interval: int
+    time_limit: int
+    rules: list[str]
 
 if __name__ == '__main__':
     cli_arg_parser = CLI_ArgParser()

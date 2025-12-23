@@ -1,11 +1,14 @@
 from dataclasses import fields, MISSING
 
 import pytest
-from src.rules_engine.rule_builder.condition import Condition, Operator, ConditionSet, all_of, any_of, GroupOperator, \
-    NotCondition
-from src.rules_engine.rule_builder.rule import Action, Rule
+
+from src.rules_engine.facts.field import FieldRef
+from src.rules_engine.model.condition import Condition, ConditionSet, NotCondition
+from src.rules_engine.model.operators import Operator, GroupOperator
+from src.rules_engine.model.rule import Action, Rule
+from src.rules_engine.rule_builder.parsers import cond
 from src.rules_engine.rule_builder.rule_builder import RuleBuilder
-from src.rules_engine import cond, not_
+from src.rules_engine.rule_builder.combinators import not_, all_of, any_of
 
 
 class TestRuleBuilderBase:
@@ -18,12 +21,14 @@ class TestRuleBuilderBase:
         self.grant_access = Action("grant_access", lambda facts: facts.update({"access": True}))
         self.block_access = Action("block_access", lambda facts: facts.update({"access": False}))
 
+
+
 class TestCondParsing(TestRuleBuilderBase):
 
     def test_cond_parsing_basic(self):
         c = cond("age < 18")
         assert isinstance(c, Condition)
-        assert c.field == "age"
+        assert c.field == FieldRef(path="age", type=str)
         assert c.operator == Operator.LT
         assert c.value == "18"
 
@@ -31,6 +36,14 @@ class TestCondParsing(TestRuleBuilderBase):
         c = cond("score >= 100")
         assert c.operator == Operator.GTE
         assert c.value == "100"
+
+    def test_inline_nested_condition(self):
+        rule = (RuleBuilder().define('test', 'test_check')
+                .when(cond('val.child > 1'))
+                .then(self.grant_access))
+        facts = {"val": {"child": 2}}
+        assert isinstance(rule.condition.field, FieldRef)
+        assert rule.condition.field.evaluate(facts) == "2"
 
     def test_cond_parsing_invalid_raises(self):
         with pytest.raises(ValueError):
@@ -127,7 +140,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         with pytest.raises(ValueError):
             builder.or_(self.adult)
         with pytest.raises(ValueError):
-            RuleBuilder().then(self.grant_access)  # no condition
+            RuleBuilder().then(self.grant_access)  # no model
 
     def test_when_called_twice_raises(self):
         builder = RuleBuilder().define("name", "desc").when(self.adult)
@@ -142,8 +155,8 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
             .then(self.grant_access)
         )
 
-        # The condition should be a NotCondition wrapping the original Condition
-        from src.rules_engine.rule_builder.condition import NotCondition, Condition
+        # The model should be a NotCondition wrapping the original Condition
+        from src.rules_engine.model.condition import NotCondition, Condition
         assert isinstance(rule.condition, NotCondition)
         assert isinstance(rule.condition.condition, Condition)
         assert rule.condition.condition == self.adult
@@ -161,7 +174,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
             .then(self.grant_access)
         )
 
-        # Top-level condition should be a ConditionSet with ALL
+        # Top-level model should be a ConditionSet with ALL
         assert isinstance(rule.condition, ConditionSet)
         assert rule.condition.group_operator.name == "ALL"
 
@@ -183,7 +196,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         assert rule.condition.describe() == expected_describe
 
 
-# Dummy condition and action for testing
+# Dummy model and action for testing
 adult = Condition("age", Operator.GTE, "18")
 grant_access = Action(name="grant", execute=lambda facts: None)
 
@@ -232,10 +245,10 @@ class TestRuleBuilderAllAttributesDynamic:
     def test_all_rule_fields_exposed_in_builder(self):
         """
         Ensure all Rule attributes (except explicitly ignored) are set via the builder.
-        Fails if a field is None or left at its default value.
+        Fails if a model is None or left at its default value.
         """
         ignored_fields = [
-            "id",
+            "id"
         ]
 
         rule = (
@@ -244,6 +257,9 @@ class TestRuleBuilderAllAttributesDynamic:
             .when(adult)
             .group("membership")
             .mutually_exclusive_group("access_level")
+            .disable()
+            .priority(4)
+            .set_metadata({'ex': 'val'})
             .then(grant_access)
         )
 
@@ -253,7 +269,7 @@ class TestRuleBuilderAllAttributesDynamic:
 
             value = getattr(rule, field_info.name)
 
-            # Determine default for the field
+            # Determine default for the model
             if field_info.default is not MISSING:
                 default_value = field_info.default
             elif field_info.default_factory is not MISSING:
@@ -263,6 +279,6 @@ class TestRuleBuilderAllAttributesDynamic:
 
             # Fail if value is None or equal to default
             assert value is not None and value != default_value, (
-                f"Rule field '{field_info.name}' is not set via builder: "
+                f"Rule model '{field_info.name}' is not set via builder: "
                 f"value is {value}, default is {default_value}"
             )

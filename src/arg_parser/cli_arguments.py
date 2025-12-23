@@ -53,7 +53,7 @@ class MutExGroup:
 
 class CliArguments:
     """Static class for Cli Argument Groupings and Methods."""
-    cli_arguments: list[_CliArgument] = [
+    cli_arguments: tuple[_CliArgument] = (
         _CliArgument(name_or_flags="pid", nargs="?", type=int,
                      help="Process ID to attach to. If omitted, use -c to create a process."),
         _CliArgument(
@@ -70,7 +70,7 @@ class CliArguments:
                      ),
         _CliArgument(name_or_flags=("-r", "--rules"), nargs="+", type=str,
                      help="Rule names or ids to test.")
-    ]
+    )
 
     mutually_exclusive_groups: list[MutExGroup] = [
         MutExGroup([

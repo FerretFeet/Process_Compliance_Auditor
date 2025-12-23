@@ -1,2 +1,2 @@
-from .process_snapshot import ProcessSnapshot
+from src.process_handler.snapshot.process_snapshot import ProcessSnapshot
 from .process_handler import ProcessHandler

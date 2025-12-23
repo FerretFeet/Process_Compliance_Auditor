@@ -1,21 +1,13 @@
-import re
 from dataclasses import dataclass
-from enum import Enum
-from typing import Union, Sequence, Iterable
+from typing import Union, Sequence, Iterable, Any
 
+from src.rules_engine.facts.field import FieldRef
+from src.rules_engine.model.operators import Operator, GroupOperator
 
-class Operator(Enum):
-    EQ = "=="
-    NE = "!="
-    LT = "<"
-    LTE = "<="
-    GT = ">"
-    GTE = ">="
-    IN = "in"
 
 @dataclass(frozen=True, slots=True)
 class Condition:
-    field: str
+    field: FieldRef
     operator: Operator
     value: str
 
@@ -42,14 +34,6 @@ class NotCondition:
     def __invert__(self):
         return self.condition
 
-
-
-
-class GroupOperator(Enum):
-    ALL = "all"
-    ANY = "any"
-
-Expression = Union[Condition, "ConditionSet", NotCondition]
 
 @dataclass(frozen=True, slots=True)
 class ConditionSet:
@@ -102,34 +86,4 @@ class ConditionSet:
         return NotCondition(self)
 
 
-def all_of(*conditions: Expression) -> ConditionSet:
-    """Create an AND group from multiple conditions"""
-    return ConditionSet.all(*conditions)
-
-def any_of(*conditions: Expression) -> ConditionSet:
-    """Create an OR group from multiple conditions"""
-    return ConditionSet.any(*conditions)
-
-
-def cond(expr: str) -> Condition:
-    """
-    Parse a string like "age < 18" into a Condition object
-    using Operator enum values.
-    """
-    expr = expr.strip()
-    # Sort by descending length to handle <=, >= before <, >
-    sorted_ops = sorted(Operator, key=lambda op: -len(op.value))
-
-    for op_enum in sorted_ops:
-        pattern = rf"\s{re.escape(op_enum.value)}\s"
-        match = re.search(pattern, f" {expr} ")
-        if match:
-            # Split on the operator
-            field, value = map(str.strip, re.split(pattern, expr, maxsplit=1))
-            return Condition(field=field, operator=op_enum, value=value)
-
-    raise ValueError(f"Could not parse condition: {expr}")
-
-
-def not_(condition: Expression) -> NotCondition:
-    return ~condition
+Expression = Union[Condition, ConditionSet, NotCondition]
