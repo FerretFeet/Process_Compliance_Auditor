@@ -1,27 +1,8 @@
 from dataclasses import dataclass
-from typing import Union, Sequence, Iterable, Any
+from typing import Union, Sequence, Iterable
 
-from src.rules_engine.facts.field import FieldRef
-from src.rules_engine.model.operators import Operator, GroupOperator
-
-
-@dataclass(frozen=True, slots=True)
-class Condition:
-    field: FieldRef
-    operator: Operator
-    value: str
-
-    def __and__(self, other: "Expression") -> "ConditionSet":
-        return ConditionSet.all(self, other)
-
-    def __or__(self, other: "Expression") -> "ConditionSet":
-        return ConditionSet.any(self, other)
-
-    def describe(self) -> str:
-        return f"{self.field} {self.operator.value} {self.value!r}"
-
-    def __invert__(self) -> "NotCondition":
-        return NotCondition(self)
+from rules_engine.model.condition.base import Condition
+from src.rules_engine.model.operators import GroupOperator
 
 
 @dataclass(frozen=True, slots=True)

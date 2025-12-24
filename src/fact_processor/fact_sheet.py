@@ -1,6 +1,5 @@
 from typing import Any
 from src.process_handler import ProcessSnapshot
-
 class FactSheet:
     """
     An interface to translate a ProcessSnapshot into a dict of audit-friendly facts.

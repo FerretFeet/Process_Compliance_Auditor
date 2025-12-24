@@ -2,7 +2,7 @@ from dataclasses import fields, MISSING
 
 import pytest
 
-from src.rules_engine.facts.field import FieldRef
+from rules_engine.model.field import FieldRef
 from src.rules_engine.model.condition import Condition, ConditionSet, NotCondition
 from src.rules_engine.model.operators import Operator, GroupOperator
 from src.rules_engine.model.rule import Action, Rule

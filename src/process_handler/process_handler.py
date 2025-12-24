@@ -1,6 +1,6 @@
 
-from src.process_handler import ProcessSnapshot
 from src.process_handler.audited_process import AuditedProcess
+from src.snapshot_manager.snapshot import ProcessSnapshot
 from src.services import logger
 
 
@@ -27,15 +27,18 @@ class ProcessHandler:
                 logger.warning(f"Failed to check if process is alive: {e}")
         return active_count
 
-    def get_snapshot(self) -> list[ProcessSnapshot]:
-        """Return a snapshot of all tracked processes."""
-        snapshots: list[ProcessSnapshot] = []
-        for process in self._processes:
-            try:
-                snapshots.append(process.snapshot())
-            except Exception as e:
-                logger.warning(f"Failed to take snapshot for process {process}: {e}")
-        return snapshots
+    def get_processes(self):
+        return self._processes
+
+    # def get_snapshot(self) -> list[ProcessSnapshot]:
+    #     """Return a snapshot of all tracked processes."""
+    #     snapshots: list[ProcessSnapshot] = []
+    #     for process in self._processes:
+    #         try:
+    #             snapshots.append(process.snapshot())
+    #         except Exception as e:
+    #             logger.warning(f"Failed to take snapshot for process {process}: {e}")
+    #     return snapshots
 
     def shutdown_all(self) -> None:
         """Shutdown all tracked processes."""

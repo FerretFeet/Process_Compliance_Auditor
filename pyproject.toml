@@ -1,3 +1,6 @@
+[tool.uv]
+package = true
+
 [project]
 name = "Process_Compliance_Auditor"
 version = "0.1.0"

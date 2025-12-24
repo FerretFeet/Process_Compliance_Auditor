@@ -3,10 +3,9 @@ import hashlib
 from dataclasses import dataclass, field
 from typing import Optional, Callable
 
+from rules_engine.model.condition.condition import Expression
 from src.custom_exceptions.custom_exception import InvalidRuleDataError
-from src.rules_engine.model.condition import Expression
-from src.rules_engine.rule_builder.combinators import all_of, any_of
-from src.rules_engine.rule_builder.parsers import cond
+
 
 ActionType = Callable[[dict], None]
 
@@ -61,6 +60,8 @@ class Rule:
           - group (optional)
           - mutually_exclusive_group (optional)
         """
+        from src.rules_engine.rule_builder.combinators import all_of, any_of
+        from src.rules_engine.rule_builder.parsers import cond
 
         name = toml_data.get("name")
         description = toml_data.get("description", "")
@@ -118,6 +119,9 @@ class Rule:
         Recursively parse nested model dictionaries from TOML/JSON into
         Condition, NotCondition, or ConditionSet objects.
         """
+        from src.rules_engine.rule_builder.combinators import all_of, any_of
+        from src.rules_engine.rule_builder.parsers import cond
+
         op = data.get("operator", "all").lower()
         children = data.get("conditions", [])
         child_conditions = []

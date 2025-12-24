@@ -2,13 +2,14 @@ import pathlib
 from typing import Mapping
 
 import pytest
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import patch, mock_open
 
-from src.rules_engine.facts.field import FieldRef
+from rules_engine.model.field import FieldRef
 from src.rules_engine.model.condition import Condition
 from src.rules_engine.model.operators import Operator
 from src.rules_engine.model.rule import Action, Rule
-from src.rules_engine.rules_engine import RulesEngine, InvalidRuleFilterException, FactSpecProtocol
+from src.rules_engine.rules_engine import RulesEngine, InvalidRuleFilterException
+from _common.facts import FactSpecProtocol
 
 
 class MockFact(FactSpecProtocol):

@@ -1,7 +1,7 @@
 import re
 
 from src.fact_processor.fact_registry import FactRegistry
-from src.rules_engine.facts.field import FieldRef
+from rules_engine.model.field import FieldRef
 from src.rules_engine.model.condition import Condition
 from src.rules_engine.model.operators import Operator
 

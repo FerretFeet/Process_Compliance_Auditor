@@ -1,14 +1,7 @@
-from dataclasses import dataclass, field
-from typing import Type, Any, Dict, Set, Mapping
+from typing import Type, Any, Dict, Set
 
+from _common.facts import FactSpec
 
-@dataclass(frozen=True)
-class FactSpec:
-    path: str                 # e.g., "cpu.percent"
-    type: Type                # Python type, e.g., float
-    description: str = ""
-    allowed_operators: Set[str] = field(default_factory=set)
-    allowed_values: Set[str] = field(default_factory=set)
 
 class FactRegistry:
     _registry: Dict[str, FactSpec] = {}

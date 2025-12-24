@@ -4,6 +4,7 @@ S = TypeVar("S")
 R = TypeVar("R")
 
 class SnapshotExtractor(Generic[S, R]):
+    """Class to extract S attrs from a mapping R."""
     def __init__(self):
         self.collectors: List[Callable[[R, S], None]] = []
 

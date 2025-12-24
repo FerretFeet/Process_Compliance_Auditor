@@ -2,15 +2,14 @@ import datetime
 import pathlib
 import tomllib
 from dataclasses import dataclass
-from typing import Callable, Protocol, Any, Type, List, Optional, Mapping
+from typing import Callable, Mapping
 
-from src import rules_engine
-from src.custom_exceptions import InvalidRuleFilterException, RuleWithNoAvailableFactException
-from src.custom_exceptions.custom_exception import InvalidRuleDataError
-from src.rules_engine.builtin_rules import ALL_BUILTIN_RULES
-from src.utils.get_project_config import get_project_config
-from src.services import logger
-from src.utils import project_root
+from _common.facts import FactSpecProtocol
+from custom_exceptions import RuleWithNoAvailableFactException, InvalidRuleDataError, InvalidRuleFilterException
+from rules_engine.builtin_rules import ALL_BUILTIN_RULES
+from rules_engine.model import Rule
+from services import logger
+from utils import project_root, get_project_config
 
 FactCheck = Callable[[dict], bool]
 
@@ -25,11 +24,6 @@ class FailEvent:
     time_occured: datetime.datetime
     failed_condition: FactCheck
 
-class FactSpecProtocol(Protocol):
-    path: str                             # e.g., key, key.child
-    type: Type[Any]                       # e.g., int, str, float
-    allowed_operators: list[str]          # e.g., ['==', '!=', '>', '<']
-    allowed_values: Optional[list[Any]]   # optional restriction on values
 
 FactProvider = Callable[[], Mapping[str, FactSpecProtocol]]
 
@@ -41,7 +35,7 @@ class RulesEngine:
     """Control Access and Understanding of Rules."""
     def __init__(self, fact_provider: FactProvider, *,
                  toml_rules_path: pathlib.Path = _rules_file_path,
-                 builtin_rules: list[rules_engine.Rule] = _builtin_rules
+                 builtin_rules: list[Rule] = _builtin_rules
                  ) -> None:
         self.fact_provider = fact_provider
         self.builtin_rules = builtin_rules
@@ -53,7 +47,7 @@ class RulesEngine:
         self.validate_rules()
 
 
-    def get_rules(self) -> dict[str, rules_engine.Rule]:
+    def get_rules(self) -> dict[str, Rule]:
         """Return all rules defined in project.toml.
 
         Loads rules if not already loaded.
@@ -100,7 +94,7 @@ class RulesEngine:
             raise RuleWithNoAvailableFactException("\n".join(error[1].name for error in errors))
         self.rules = valids
 
-    def _load_rules_from_toml(self, rules_path: pathlib.Path) -> list[rules_engine.Rule]:
+    def _load_rules_from_toml(self, rules_path: pathlib.Path) -> list[Rule]:
         """Load rules from project.toml.
 
         Returns all rules defined in project.toml.
@@ -112,15 +106,15 @@ class RulesEngine:
         rules = []
         for rule_data in uf_rules:
             try:
-                rules.append(rules_engine.Rule.from_toml(rule_data))
+                rules.append(Rule.from_toml(rule_data))
             except InvalidRuleDataError as e:
                 logger.warning(f"Skipping invalid rule_builder: {e}")
         return rules
 
 
 
-    def match_rules(self, rules: dict[str, rules_engine.Rule], filters: list[str] | None)\
-            -> dict[str, rules_engine.Rule]:
+    def match_rules(self, rules: dict[str, Rule], filters: list[str] | None)\
+            -> dict[str, Rule]:
         """Return only the rules matching the given filters.
 
         Args:
@@ -130,7 +124,7 @@ class RulesEngine:
         """
         if filters is None:
             return rules
-        active_rules = dict[str, rules_engine.Rule]()
+        active_rules = dict[str, Rule]()
         for _filter in filters:
             try:
                 active_rules[_filter] = rules[_filter]
@@ -143,7 +137,7 @@ class RulesEngine:
                     raise InvalidRuleFilterException(msg) from err
         return active_rules
 
-    # def _resolve_condition(self, rule: rules_engine.Rule) -> FactCheck:
+    # def _resolve_condition(self, rule: Rule) -> FactCheck:
     #     """Resolve a rule_builder model."""
     #     if rule.evaluator:
     #         return rule.evaluator
@@ -152,7 +146,7 @@ class RulesEngine:
     #     else:
     #         msg = f'Expected evaluator or parse model, got {type(rule)}'
     #         raise InvalidRuleExc(msg)
-    # def _process_rule_violation(self, facts: FactSheet, rule: rules_engine.Rule, model: FactCheck) -> FailEvent:
+    # def _process_rule_violation(self, facts: FactSheet, rule: Rule, model: FactCheck) -> FailEvent:
     #     """Perform actions for a rule_builder violation detection."""
     #     result = FailEvent(
     #         pid=facts.get('pid'),
@@ -171,7 +165,7 @@ class RulesEngine:
     #     logger.info(msg)
     #     return result
     #
-    # def check_compliance(self, fact_sheets: list[FactSheet], active_rules: dict[int, rules_engine.Rule])\
+    # def check_compliance(self, fact_sheets: list[FactSheet], active_rules: dict[int, Rule])\
     #         -> list[dict[int, list[FailEvent]]]:
     #     """Compare facts to rules."""
     #     final_result = []

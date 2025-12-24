@@ -2,9 +2,9 @@ from typing import Optional
 
 import psutil
 
-from src.process_handler.snapshot.process_snapshot.collectors import DEFAULT_COLLECTORS
-from src.process_handler.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe
-from src.process_handler.snapshot.snapshot_extractor import SnapshotExtractor
+from src.snapshot_manager.snapshot.process_snapshot.collectors import DEFAULT_COLLECTORS as p_DEFAULT_COLLECTORS
+from src.snapshot_manager.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe
+from src.snapshot_manager.snapshot.snapshot_extractor import SnapshotExtractor
 
 
 class SnapshotFactory:
@@ -12,24 +12,18 @@ class SnapshotFactory:
     General factory class for creating various snapshot types.
     """
     def __init__(self):
-        # Prepare a default process snapshot extractor
+        # psutil Process Snapshot
         self.process_extractor = SnapshotExtractor[ProcessSnapshot, psutil.Process]()
-        for collector in DEFAULT_COLLECTORS:
+        for collector in p_DEFAULT_COLLECTORS:
             self.process_extractor.register_collector(collector)
+        # Others
 
     def create_process_snapshot(self,
-                                proc: Optional[psutil.Process] = None,
-                                *,
-                                use_current: bool = False,
+                                proc: psutil.Process,
                                 ) -> ProcessSnapshot | None:
         """
         Create a fully populated ProcessSnapshot.
         """
-        if proc is None and use_current:
-            proc = psutil.Process()
-        elif proc is None:
-            return None
-
         snap = ProcessSnapshot(
             pid=proc.pid,
             name=_safe(proc.name, "unknown"),

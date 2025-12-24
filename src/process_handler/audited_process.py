@@ -6,8 +6,8 @@ from typing import Callable
 import psutil
 
 from src.custom_exceptions import ProcessNotCreatedException
-from src.process_handler import ProcessSnapshot
-from src.process_handler.snapshot.process_snapshot import DEFAULT_COLLECTORS, _safe
+from src.snapshot_manager.snapshot import DEFAULT_COLLECTORS
+from src.snapshot_manager.snapshot import ProcessSnapshot, _safe
 from src.services import logger
 
 
@@ -122,52 +122,7 @@ class AuditedProcess:
         gone, alive = psutil.wait_procs(children, timeout=timeout,
                                         callback=on_terminate)
         return gone, alive
-    #
-    # def snapshot(self) -> ProcessSnapshot | None:
-    #     """Get available data from the process."""
-    #
-    #     proc = self.process
-    #     if not proc: return None
-    #     try:
-    #         with proc.oneshot():
-    #             return ProcessSnapshot(
-    #                 pid=proc.pid,
-    #                 ppid=proc.ppid(),
-    #                 name=proc.name(),
-    #                 exe=_safe(proc.exe),
-    #                 cmdline=_safe(proc.cmdline, default=[]),
-    #                 environ=_safe(proc.environ),
-    #                 create_time=proc.create_time(),
-    #                 as_dict=proc.as_dict(attrs=None, ad_value=None),
-    #                 parents=[p.pid for p in proc.parents()],
-    #                 status=proc.status(),
-    #                 cwd=_safe(proc.cwd),
-    #                 username=_safe(proc.username),
-    #                 uids=_safe(proc.uids),
-    #                 gids=_safe(proc.gids),
-    #                 rlimit=_safe(proc.rlimit),
-    #                 io_counters=_safe(proc.io_counters),
-    #                 num_ctx_switches=_safe(proc.num_ctx_switches),
-    #                 num_fds=_safe(proc.num_fds),
-    #                 num_threads=proc.num_threads(),
-    #                 threads=_safe(proc.threads, default=[]),
-    #                 cpu_times=_safe(proc.cpu_times),
-    #                 cpu_percent=proc.cpu_percent(interval=0.1),
-    #                 cpu_affinity=_safe(proc.cpu_affinity),
-    #                 cpu_num=_safe(proc.cpu_num),
-    #                 memory_info=_safe(proc.memory_info),
-    #                 memory_full_info=_safe(proc.memory_full_info),
-    #                 memory_maps=_safe(proc.memory_maps, default=[]),
-    #                 memory_percent=proc.memory_percent(),
-    #                 children=[c.pid for c in _safe(proc.children, default=[])],
-    #                 open_files=_safe(proc.open_files, default=[]),
-    #                 net_connections=_safe(proc.connections, default=[]),
-    #                 is_running=proc.is_running(),
-    #                 snapshot_time=time.time()
-    #             )
-    #     except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-    #         logger.warning(f"Failed to snapshot process {proc.pid}: {e}")
-    #         return None
+
 
     def snapshot(self, collectors=None) -> ProcessSnapshot | None:
         proc = self.process
