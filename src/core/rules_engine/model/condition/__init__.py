@@ -1,2 +1,2 @@
-from .base import Condition
-from .condition import NotCondition, Expression, ConditionSet
+from .condition import Expression
+from .base import Condition, NotCondition, ConditionSet

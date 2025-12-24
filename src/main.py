@@ -68,9 +68,11 @@ class Main:
                 loop_start = time.monotonic()
 
                 ps_output = snapshot_manager.get_all_snapshots()
+                ### Unit Test Snapshot Manager and Probes, make sure package code is clean
 
 
                 facts: list = fact_processor.parse_facts(ps_output)
+
 
                 output = compliance_engine.run(self.active_rules, facts)
 

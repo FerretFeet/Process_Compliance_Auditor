@@ -3,7 +3,7 @@ import hashlib
 from dataclasses import dataclass, field
 from typing import Optional, Callable
 
-from core.rules_engine.model.condition.condition import Expression
+from core.rules_engine.model.condition import Expression
 from shared.custom_exceptions.custom_exception import InvalidRuleDataError
 
 
