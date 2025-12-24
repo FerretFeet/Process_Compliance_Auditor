@@ -1,7 +1,7 @@
 import logging
 
-from src.services import logger
-from src.utils import project_root
+from shared.services import logger
+from shared.utils import project_root
 
 
 def pytest_configure(config):

@@ -3,14 +3,14 @@ import time
 from dataclasses import dataclass
 from typing import Callable
 
-from src.arg_parser.cli_arg_parser import CLI_ArgParser, CliContext
-from src.compliance_engine import ComplianceEngine
-from src.fact_processor.fact_processor import FactProcessor
-from src.process_handler.process_handler import AuditedProcess, ProcessHandler
-from src.rules_engine.rules_engine import RulesEngine
-from src.services import logger
-from src.snapshot_manager.snapshot_manager import SnapshotManager
-from src.utils.get_project_config import get_project_config
+from interface.arg_parser import CLI_ArgParser, CliContext
+from core.compliance_engine import ComplianceEngine
+from core.fact_processor.fact_processor import FactProcessor
+from collection.process_handler.process_handler import AuditedProcess, ProcessHandler
+from core.rules_engine.rules_engine import RulesEngine
+from shared.services import logger
+from collection.snapshot_manager import SnapshotManager
+from shared.utils.get_project_config import get_project_config
 
 
 class Main:
@@ -31,7 +31,7 @@ class Main:
         self.active_rules = rules_engine.match_rules(rules_engine.get_rules(), self.cli_context.rules)
         self.process_handler.add_process(AuditedProcess(self.cli_context.process))
 
-        self.snapshot_manager.register_processes(self.process_handler.get_processes())
+        self.snapshot_manager.add_probe(self.process_handler.get_processes())
 
         self.run_condition = self.RunCondition(time.monotonic(), self.cli_context.time_limit,
                                           self.cli_context.interval, self.process_handler.num_active)
