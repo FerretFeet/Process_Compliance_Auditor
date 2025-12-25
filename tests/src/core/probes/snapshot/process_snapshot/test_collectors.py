@@ -12,21 +12,7 @@ from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapsh
 
 class TestCollectors:
 
-    @pytest.fixture
-    def mock_proc(self):
-        """Standard mock for psutil.Process."""
-        proc = MagicMock(spec=psutil.Process)
-        proc.pid = 1234
-        return proc
 
-    @pytest.fixture
-    def empty_snap(self):
-        """Standard ProcessSnapshot skeleton."""
-        return ProcessSnapshot(
-            pid=1234,
-            name="test_proc",
-            create_time=0.0
-        )
 
     def test_collect_identity(self, mock_proc, empty_snap):
         mock_proc.ppid.return_value = 1

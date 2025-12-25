@@ -20,3 +20,8 @@ class FactSpec:
     description: str = ""
     allowed_operators: Collection[Operator] = field(default_factory=list)
     allowed_values: Optional[Collection[str]] = field(default_factory=list)
+
+@dataclass(frozen=True)
+class FactData:
+    spec: FactSpec
+    value: Any

@@ -25,14 +25,7 @@ class TestSafeHelper:
 
 class TestProcessSnapshot:
 
-    @pytest.fixture
-    def mock_proc(self):
-        """Provides a mocked psutil.Process object."""
-        proc = MagicMock(spec=psutil.Process)
-        proc.pid = 999
-        proc.name.return_value = "test_proc"
-        proc.create_time.return_value = 12345.67
-        return proc
+
 
     def test_from_source_creation(self, mock_proc):
         """Verify from_source correctly maps psutil attributes."""

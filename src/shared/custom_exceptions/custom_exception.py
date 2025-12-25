@@ -43,3 +43,7 @@ class RuleWithNoAvailableFactException(Exception):
     def __init__(self, msg: str):
         super().__init__(msg)
 
+
+class FactNotFoundException(Exception):
+    def __init__(self, msg: str):
+        super().__init__(msg)

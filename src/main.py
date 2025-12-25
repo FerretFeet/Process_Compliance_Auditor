@@ -1,13 +1,15 @@
 """A tool to audit the behavior of apps and their compliance with defined security rules."""
 import time
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Any
 
+from core.probes.snapshot.base import BaseSnapshot
 from interface.arg_parser import CLI_ArgParser, CliContext
 from core.compliance_engine import ComplianceEngine
 from core.fact_processor.fact_processor import FactProcessor
 from collection.process_handler.process_handler import AuditedProcess, ProcessHandler
 from core.rules_engine.rules_engine import RulesEngine
+from shared.custom_exceptions import FactNotFoundException
 from shared.services import logger
 from collection.snapshot_manager import SnapshotManager
 
@@ -66,10 +68,8 @@ class Main:
             while self.run_condition.is_active():
                 loop_start = time.monotonic()
 
-                ps_output = snapshot_manager.get_all_snapshots()
-
-
-                facts: list = fact_processor.parse_facts(ps_output)
+                ps_output: dict[str, list[BaseSnapshot]] = snapshot_manager.get_all_snapshots()
+                facts: dict[str, dict[str, Any]] = fact_processor.parse_facts(ps_output)
 
 
                 output = compliance_engine.run(self.active_rules, facts)
@@ -83,6 +83,8 @@ class Main:
             #Do whatever i need to safely handle this
             # allow multiple interrupts? Daemon mode?
             logger.info(f'Keyboard Interrupt, Shutting down')
+        except (FactNotFoundException) as err:
+            logger.error(err)
         finally:
             if cli_context.create_process_flag:
                 # python created the process

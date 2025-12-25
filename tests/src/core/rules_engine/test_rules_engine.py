@@ -32,34 +32,9 @@ def mock_fact_provider():
 
 
 
-@pytest.fixture
-def sample_rule():
-    fake_condition = Condition(FieldRef("cpu_count", int), Operator.EQ, "4")
-
-    return Rule(
-        name="cpu_check",
-        description="Count cpus",
-        condition=fake_condition,  # Condition or ConditionSet
-        action=Action(name="block_access", execute=lambda facts: facts.update({"blocked": True})),
-        group="cpu",
-        source=[SourceEnum.PROCESS]
-    )
 
 
-@pytest.fixture
-def toml_data(sample_rule):
-    return {
-        "rules": [
-            {
-                "name": sample_rule.name,
-                "description": sample_rule.description,
-                "group": sample_rule.group,
-                "model": sample_rule.condition.describe(),
-                "action": lambda facts: facts.update({"access_granted": True}),
-                "source": 'process'
-            }
-        ]
-    }
+
 
 
 

@@ -1,8 +1,10 @@
 import logging
+import os
 
 from shared.services import logger
 from shared.utils import project_root
 
+from tests.fixtures import * # noqa
 
 def pytest_configure(config):
     # Modify logger to keep log files clean of test noise.
@@ -18,3 +20,5 @@ def pytest_configure(config):
     test_handler.setLevel(logging.DEBUG)
 
     logger.addHandler(test_handler)
+
+
