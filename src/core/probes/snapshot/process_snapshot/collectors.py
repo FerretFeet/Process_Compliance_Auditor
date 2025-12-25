@@ -1,6 +1,8 @@
 # collectors.py
-from process_snapshot import ProcessSnapshot, CpuSnapshot, MemorySnapshot, _safe
 import psutil
+
+from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe, MemorySnapshot, CpuSnapshot
+
 
 def collect_identity(proc: psutil.Process, snap: ProcessSnapshot):
     snap.identity.update({

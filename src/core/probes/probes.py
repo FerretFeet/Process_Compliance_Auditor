@@ -16,7 +16,7 @@ class ProbeLibrary:
             extractor.register_collector(c)
 
         return GenericProbe(
-            name="system",
+            name="process",
             source=None,
             extractor=extractor,
             initializer=ProcessSnapshot.from_source

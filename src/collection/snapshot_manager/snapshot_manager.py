@@ -1,5 +1,7 @@
 from typing import Protocol, Any
 
+from core.probes.snapshot.base import BaseSnapshot
+
 
 class Probe(Protocol):
     name: str
@@ -11,15 +13,17 @@ class SnapshotManager:
     def __init__(self):
         self._probes: list[Probe] = []
 
-    def get_all_snapshots(self) -> list:
-        snapshots = []
+    def get_all_snapshots(self) -> dict[str, list[BaseSnapshot]]:
+        returndict = {}
+        for probe in self._probes:
+            returndict.setdefault(probe.name, []).append(probe.collect())
+        return returndict
 
-        snapshots.extend(self.get_process_snapshots())
-
-        return snapshots
-
-    def get_process_snapshots(self) -> list:
-        return [probe.collect() for probe in self._probes]
+    def __get_process_snapshots(self) -> list[BaseSnapshot]:
+        # return [probe.collect() for probe in self._probes]
+        returndict = {}
+        for probe in self._probes:
+            returndict.setdefault(probe.name, []).append(probe)
 
     def add_probe(self, probe: Probe) -> None:
         self._probes.append(probe)
