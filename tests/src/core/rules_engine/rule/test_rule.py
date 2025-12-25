@@ -1,9 +1,10 @@
+from tokenize import group
 
 import pytest
 
 from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model.field import FieldRef
-from core.rules_engine.model.rule import Action, Rule
+from core.rules_engine.model.rule import Action, Rule, SourceEnum
 from core.rules_engine.model.condition import Condition, ConditionSet
 from core.rules_engine.model import Operator, GroupOperator
 from shared.utils import cfg
@@ -49,7 +50,8 @@ class TestRule(TestActionBase):
             name="TestRule",
             description="A sample rule_builder",
             condition=self.condition_set,
-            action=self.action
+            action=self.action,
+            source=[SourceEnum.PROCESS]
         )
 
 
@@ -60,7 +62,9 @@ class TestRule(TestActionBase):
             "description": "User must be an adult",
             "group": "builtin",
             "model": "unavailable >= test",
-            "action": "Block access"
+            "action": "Block access",
+            "source": "process"
+
         }
         with pytest.raises(ValueError,
                            match=r"Could not find field '[a-zA-Z]+' for expression '.+' in fact registry\."):
@@ -73,7 +77,8 @@ class TestRule(TestActionBase):
             "description": "User must be an adult",
             "group": "builtin",
             "model": "age >= 18:str",
-            "action": "Block access"
+            "action": "Block access",
+            "source": "process"
         }
         with pytest.raises(ValueError,
                            match=r"Declared type '[a-zA-Z]+' does not match fact registry type '.+' for '.+'\."):
@@ -101,7 +106,8 @@ class TestRule(TestActionBase):
             name="NestedRule",
             description="Rule with nested model sets",
             condition=nested_cond,
-            action=self.action
+            action=self.action,
+            source=[SourceEnum.PROCESS]
         )
         assert isinstance(rule_nested.condition, ConditionSet)
         assert len(rule_nested.condition.conditions) == 3
@@ -112,7 +118,8 @@ class TestRule(TestActionBase):
             "description": "User must be an adult",
             "group": "builtin",
             "model": "age >= 18",
-            "action": "Block access"
+            "action": "Block access",
+            "source": "process"
         }
 
         rule = Rule.from_toml(toml_data)
@@ -147,7 +154,9 @@ class TestRule(TestActionBase):
                     }
                 ]
             },
-            "action": lambda facts: facts.update({"access_granted": True})
+            "action": lambda facts: facts.update({"access_granted": True}),
+            "source": "process"
+
         }
 
         rule = Rule.from_toml(toml_data)

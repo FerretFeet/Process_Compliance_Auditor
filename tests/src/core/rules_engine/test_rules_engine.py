@@ -7,9 +7,10 @@ from unittest.mock import patch, mock_open
 from core.rules_engine.model.field import FieldRef
 from core.rules_engine.model.condition import Condition
 from core.rules_engine.model import Operator
-from core.rules_engine.model.rule import Action, Rule
+from core.rules_engine.model.rule import Action, Rule, SourceEnum
 from core.rules_engine.rules_engine import RulesEngine, InvalidRuleFilterException
 from shared._common.facts import FactSpecProtocol
+from tests.fixtures.fake_fact_registry import fake_fact_registry
 
 
 class MockFact(FactSpecProtocol):
@@ -40,7 +41,8 @@ def sample_rule():
         description="Count cpus",
         condition=fake_condition,  # Condition or ConditionSet
         action=Action(name="block_access", execute=lambda facts: facts.update({"blocked": True})),
-        group="cpu"
+        group="cpu",
+        source=[SourceEnum.PROCESS]
     )
 
 
@@ -53,7 +55,8 @@ def toml_data(sample_rule):
                 "description": sample_rule.description,
                 "group": sample_rule.group,
                 "model": sample_rule.condition.describe(),
-                "action": lambda facts: facts.update({"access_granted": True})
+                "action": lambda facts: facts.update({"access_granted": True}),
+                "source": 'process'
             }
         ]
     }
@@ -67,14 +70,16 @@ def test_builtin_rules_loaded(sample_rule, mock_fact_provider):
 
 
 
-def test_toml_rules_loaded(mock_fact_provider):
+def test_toml_rules_loaded(mock_fact_provider, fake_fact_registry):
     toml_content = """
 [[rules]]
 name = "cpu_check"
 description = "Count cpus"
 group = "cpu"
-model = "cpu_count == 4"
+model = "cpu_count == 4:int"
 action = "example"
+source = "process"
+
 """
 
     # Convert to bytes for tomllib.load (binary mode)
@@ -86,9 +91,7 @@ action = "example"
     m.return_value.__enter__.return_value.read = lambda: toml_bytes
 
     with (patch("pathlib.Path.open", m),
-          patch("core.rules_engine.rule_builder.parsers.FactRegistry") as mock_registry
           ):
-        mock_registry.get.return_value = mock_fact_provider().get("cpu_count")
         engine = RulesEngine(mock_fact_provider, builtin_rules=[], toml_rules_path=pathlib.Path("/fake/path"))
         loaded_rules = engine.get_rules()
 

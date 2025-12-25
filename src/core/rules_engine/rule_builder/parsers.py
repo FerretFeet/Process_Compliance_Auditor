@@ -54,7 +54,7 @@ def cond(expr: str) -> Condition:
                     raise ValueError(f"Unknown explicit type '{type_name}' in expression '{expr}'.")
 
             try:
-                field_fact = FactRegistry.get(field_str)
+                field_fact = FactRegistry.get_fact(field_str)
                 fact_type = field_fact.type
             except KeyError:
                 msg = f"Could not find field '{field_str}' for expression '{expr}' in fact registry."

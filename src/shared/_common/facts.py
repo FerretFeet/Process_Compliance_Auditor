@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Protocol, Type, Any, Collection, Optional
 
+from core.rules_engine.model.rule import SourceEnum
 from shared._common.operators import Operator
 
 
@@ -15,6 +16,7 @@ class FactSpecProtocol(Protocol):
 class FactSpec:
     path: str
     type: Type
+    source: list[SourceEnum]
     description: str = ""
-    allowed_operators: list[Operator] = field(default_factory=list)
-    allowed_values: Optional[list[str]] = field(default_factory=list)
+    allowed_operators: Collection[Operator] = field(default_factory=list)
+    allowed_values: Optional[Collection[str]] = field(default_factory=list)

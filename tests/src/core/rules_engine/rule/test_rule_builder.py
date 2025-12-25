@@ -256,6 +256,7 @@ class TestRuleBuilderAllAttributesDynamic:
         rule = (
             RuleBuilder()
             .define("test_rule_dynamic", "Testing full attribute coverage")
+            .source('process')
             .when(adult)
             .group("membership")
             .mutually_exclusive_group("access_level")

@@ -1,6 +1,9 @@
+from collections import defaultdict
 from typing import Type, Any, Dict, Set
 
+from core.rules_engine.model.rule import SourceEnum
 from shared._common.facts import FactSpec
+from shared._common.operators import Operator
 
 
 class FactRegistry:
@@ -11,22 +14,25 @@ class FactRegistry:
         cls,
         path: str,
         type_: Type,
+        source: list[SourceEnum],
+        allowed_operators: Set[Operator],
         description: str = "",
-        allowed_operators: Set[str] | None = None,
         allowed_values: Set[str] | None = None,
     ) -> None:
         if path in cls._registry:
             raise ValueError(f"Fact '{path}' is already registered")
-        cls._registry[path] = FactSpec(
+        fact = FactSpec(
             path=path,
             type=type_,
+            source=source,
             description=description,
             allowed_operators=allowed_operators or set(),
             allowed_values=allowed_values or set(),
         )
 
+        cls._registry[path] = fact
     @classmethod
-    def get(cls, path: str) -> FactSpec:
+    def get_fact(cls, path: str) -> FactSpec:
         if path not in cls._registry:
             raise KeyError(f"Fact '{path}' is not registered")
         return cls._registry[path]
@@ -37,7 +43,7 @@ class FactRegistry:
 
     @classmethod
     def validate(cls, path: str, value: Any) -> bool:
-        spec = cls.get(path)
+        spec = cls.get_fact(path)
         if value is None:
             return True  # optional: allow None
         if not isinstance(value, spec.type):

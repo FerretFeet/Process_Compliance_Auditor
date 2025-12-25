@@ -1,11 +1,14 @@
 """"""
 import hashlib
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Optional, Callable
 
 from core.rules_engine.model.condition import Expression
 from shared.custom_exceptions.custom_exception import InvalidRuleDataError
 
+class SourceEnum(Enum):
+    PROCESS = "process"
 
 ActionType = Callable[[dict], None]
 
@@ -25,6 +28,7 @@ class Rule:
     description: str
     condition: Expression
     action: Action
+    source: list[SourceEnum]
     group: str = ""
     mutually_exclusive_group: str = ""
     enabled: bool = field(default=True)
@@ -57,29 +61,53 @@ class Rule:
           - description
           - model (string or nested dict for complex conditions)
           - action (string message or callable reference)
+          - source (string or list of strings, optional)
           - group (optional)
           - mutually_exclusive_group (optional)
+          - enabled (optional, defaults to True)
+          - priority (optional, defaults to 0)
+          - metadata (optional, dict)
         """
         from core.rules_engine.rule_builder.combinators import all_of, any_of
         from core.rules_engine.rule_builder.parsers import cond
 
+        # Required fields
         name = toml_data.get("name")
-        description = toml_data.get("description", "")
-        group = toml_data.get("group", "")
-        mutually_exclusive_group = toml_data.get("mutually_exclusive_group", "")
-
         if not name:
             raise InvalidRuleDataError("TOML rule must have a 'name'")
 
+        description = toml_data.get("description", "")
+
+        # Grouping
+        group = toml_data.get("group", "")
+        mutually_exclusive_group = toml_data.get("mutually_exclusive_group", "")
+
+        # Enabled and priority
+        enabled = toml_data.get("enabled", True)
+        priority = toml_data.get("priority", 0)
+
+        # Metadata
+        metadata = toml_data.get("metadata", {})
+
+        # Source handling
+        raw_source = toml_data.get("source")
+        if raw_source is None:
+            source = []  # default empty list if not specified
+        elif isinstance(raw_source, str):
+            source = [SourceEnum(raw_source)]
+        elif isinstance(raw_source, list):
+            source = [SourceEnum(s) if isinstance(s, str) else s for s in raw_source]
+        else:
+            raise InvalidRuleDataError(f"Invalid source type: {type(raw_source)}")
+
+        # Parse model/condition
         raw_condition = toml_data.get("model")
         if raw_condition is None:
             raise InvalidRuleDataError("TOML rule must have a 'model'")
 
-        # If model is a string, parse it
         if isinstance(raw_condition, str):
             condition = cond(raw_condition)
         elif isinstance(raw_condition, dict):
-            # Nested conditions
             op = raw_condition.get("operator", "all").lower()
             children = raw_condition.get("conditions", [])
             child_conditions = []
@@ -94,23 +122,30 @@ class Rule:
         else:
             raise InvalidRuleDataError(f"Invalid model type: {type(raw_condition)}")
 
+        # Parse action
         raw_action = toml_data.get("action")
         if isinstance(raw_action, str):
             def execute_action(facts: dict, msg=raw_action):
                 print(msg)
+
             action = Action(name="Log", execute=execute_action)
         elif callable(raw_action):
             action = Action(name=getattr(raw_action, "__name__", "Inline"), execute=raw_action)
         else:
             raise InvalidRuleDataError(f"Invalid action type: {type(raw_action)}")
 
+        # Construct Rule instance
         return cls(
             name=name,
             description=description,
             condition=condition,
             action=action,
+            source=source,
             group=group,
             mutually_exclusive_group=mutually_exclusive_group,
+            enabled=enabled,
+            priority=priority,
+            metadata=metadata,
         )
 
     @staticmethod

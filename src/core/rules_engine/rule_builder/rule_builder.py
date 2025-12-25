@@ -21,7 +21,7 @@ rule3 = RuleBuilder.define("flagged_or_vip", "Flagged users or VIP in allowed re
 """
 
 from core.rules_engine.model.condition import Expression
-from core.rules_engine.model.rule import Action, Rule, ActionType
+from core.rules_engine.model.rule import Action, Rule, ActionType, SourceEnum
 
 
 class RuleBuilder:
@@ -31,6 +31,7 @@ class RuleBuilder:
     rule_builder = (
         RuleBuilder()
         .define("adult_rule", "User must be adult")
+        .source('process')
         .when(model)
         .and_(model)
         .or_(model)
@@ -42,6 +43,7 @@ class RuleBuilder:
         self._name = None
         self._description = None
         self._condition = None
+        self._source = None
         self._action = None
         self._group = None
         self._mutually_exclusive_group = None
@@ -57,6 +59,15 @@ class RuleBuilder:
         if self._condition is not None:
             raise ValueError("when() already called")
         self._condition = condition
+        return self
+
+    def source(self, source: str) -> "RuleBuilder":
+        if isinstance(source, str):
+            source = SourceEnum(source)
+        if self._source is None:
+            self._source = [source]
+        else:
+            self._source.append(source)
         return self
 
     def and_(self, condition: Expression) -> "RuleBuilder":
@@ -112,6 +123,7 @@ class RuleBuilder:
             description=self._description,
             condition=self._condition,
             action=action,
+            source=self._source,
             group=self._group,
             mutually_exclusive_group=self._mutually_exclusive_group,
             enabled=self._enabled,
