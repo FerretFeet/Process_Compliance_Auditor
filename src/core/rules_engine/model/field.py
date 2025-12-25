@@ -1,15 +1,6 @@
 from dataclasses import dataclass
 
-
-
-def resolve_path(facts: dict, path: str):
-    """Resolve a dot-separated path in nested dictionaries."""
-    current = facts
-    for part in path.split("."):
-        if not isinstance(current, dict):
-            raise ValueError(f"Cannot resolve {path}: {part} is not a dict")
-        current = current.get(part)
-    return current
+from shared.utils.resolve_path import resolve_path
 
 
 @dataclass(frozen=True)

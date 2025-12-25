@@ -16,3 +16,4 @@ class BaseSnapshot(ABC):
     def from_source(cls: Type[S], source: R) -> S:
         """Enforce that every snapshot knows how to build its skeleton."""
         pass
+
