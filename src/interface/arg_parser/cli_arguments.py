@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from typing import Callable, Any
 
 from shared.custom_exceptions.custom_exception import InvalidCLI_ParserConfigurationError
-from shared.utils.get_project_config import get_project_config
+from shared.utils import cfg
 
-default_interval = get_project_config().get("default_process_check_interval")
-default_time_limit = get_project_config().get("default_process_time_limit")
+default_interval = cfg.get("default_process_check_interval")
+default_time_limit = cfg.get("default_process_time_limit")
 
 # def _rule_type(x):
 #     """Convert to int if eligible."""

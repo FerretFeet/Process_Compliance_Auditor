@@ -9,7 +9,7 @@ from shared.custom_exceptions import RuleWithNoAvailableFactException, InvalidRu
 from core.rules_engine.builtin_rules import ALL_BUILTIN_RULES
 from core.rules_engine.model import Rule
 from shared.services import logger
-from shared.utils import project_root, get_project_config
+from shared.utils import project_root, cfg
 
 FactCheck = Callable[[dict], bool]
 
@@ -27,7 +27,7 @@ class FailEvent:
 
 FactProvider = Callable[[], Mapping[str, FactSpecProtocol]]
 
-_rules_file_path = project_root / get_project_config()['rules_path']
+_rules_file_path = project_root / cfg.get('rules_path')
 
 _builtin_rules = ALL_BUILTIN_RULES
 

@@ -1,6 +1,6 @@
 
 from collection.process_handler.audited_process import AuditedProcess
-from collection.probes.snapshot import ProcessSnapshot
+from core.probes.snapshot import ProcessSnapshot
 from shared.services import logger
 
 

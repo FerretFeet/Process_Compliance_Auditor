@@ -1,9 +1,9 @@
 import psutil
 
-from collection.probes.base import GenericProbe
-from collection.probes.snapshot.process_snapshot.collectors import DEFAULT_COLLECTORS
-from collection.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe
-from collection.probes.snapshot.snapshot_extractor import SnapshotExtractor
+from core.probes.base import GenericProbe
+from core.probes.snapshot.process_snapshot.collectors import DEFAULT_COLLECTORS
+from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe
+from core.probes.snapshot.snapshot_extractor import SnapshotExtractor
 
 
 class ProbeLibrary:
@@ -15,10 +15,12 @@ class ProbeLibrary:
         for c in DEFAULT_COLLECTORS:
             extractor.register_collector(c)
 
-        def init_proc(p): return ProcessSnapshot(pid=p.pid, name=_safe(p.name, "unknown"),
-                                                 create_time=_safe(p.create_time, 0.0))
-
-        return GenericProbe(f"proc_{proc.pid}", proc, extractor, init_proc)
+        return GenericProbe(
+            name="system",
+            source=None,
+            extractor=extractor,
+            initializer=ProcessSnapshot.from_source
+        )
 
     # @staticmethod
     # def system_probe() -> GenericProbe:

@@ -1,10 +1,13 @@
 
 import pytest
 
+from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model.field import FieldRef
 from core.rules_engine.model.rule import Action, Rule
 from core.rules_engine.model.condition import Condition, ConditionSet
 from core.rules_engine.model import Operator, GroupOperator
+from shared.utils import cfg
+from tests.fixtures.fake_fact_registry import fake_fact_registry
 
 
 class TestActionBase:
@@ -35,6 +38,7 @@ class TestActionBase:
 
 class TestRule(TestActionBase):
 
+
     def setup_method(self):
         super().setup_method()
         self.cond1 = Condition("x", Operator.EQ, "10")
@@ -47,6 +51,36 @@ class TestRule(TestActionBase):
             condition=self.condition_set,
             action=self.action
         )
+
+
+    def test_raises_strict_and_missing_fact(self):
+        cfg.override("strict", True)
+        toml_data = {
+            "name": "adult_check",
+            "description": "User must be an adult",
+            "group": "builtin",
+            "model": "unavailable >= test",
+            "action": "Block access"
+        }
+        with pytest.raises(ValueError,
+                           match=r"Could not find field '[a-zA-Z]+' for expression '.+' in fact registry\."):
+            rule = Rule.from_toml(toml_data)
+
+    def test_raises_value_cast_mismatch(self, fake_fact_registry):
+        cfg.override("strict", True)
+        toml_data = {
+            "name": "adult_check",
+            "description": "User must be an adult",
+            "group": "builtin",
+            "model": "age >= 18:str",
+            "action": "Block access"
+        }
+        with pytest.raises(ValueError,
+                           match=r"Declared type '[a-zA-Z]+' does not match fact registry type '.+' for '.+'\."):
+            rule = Rule.from_toml(toml_data)
+
+
+
 
     def test_rule_attributes(self):
         assert self.rule.id == "RUL-007195", "Rule id is not equal to RUL-007195, Hash function has changed."
@@ -72,7 +106,7 @@ class TestRule(TestActionBase):
         assert isinstance(rule_nested.condition, ConditionSet)
         assert len(rule_nested.condition.conditions) == 3
 
-    def test_from_toml_simple(self):
+    def test_from_toml_simple(self, fake_fact_registry):
         toml_data = {
             "name": "adult_check",
             "description": "User must be an adult",
@@ -95,7 +129,7 @@ class TestRule(TestActionBase):
         assert rule.id.startswith("BUI-")
         assert len(rule.id) == 10  # 3-char prefix + '-' + 6 digits
 
-    def test_from_toml_nested_conditions(self):
+    def test_from_toml_nested_conditions(self, fake_fact_registry):
         toml_data = {
             "name": "special_access",
             "description": "Adult users with premium or VIP",
@@ -131,9 +165,9 @@ class TestRule(TestActionBase):
         # Flattened children
         children = rule.condition.conditions
         assert isinstance(children[0], Condition)
-        assert children[0].field == FieldRef(path="age", type=str)
+        assert children[0].field == FieldRef(path="age", type=int)
         assert children[0].operator == Operator.GTE
-        assert children[0].value == "18"
+        assert children[0].value == 18
 
         # Nested ANY group
         nested = children[1]

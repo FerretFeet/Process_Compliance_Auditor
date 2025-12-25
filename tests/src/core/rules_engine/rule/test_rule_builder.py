@@ -9,6 +9,8 @@ from core.rules_engine.model.rule import Action, Rule
 from core.rules_engine.rule_builder.parsers import cond
 from core.rules_engine.rule_builder.combinators import not_, all_of, any_of
 from core.rules_engine.rule_builder.rule_builder import RuleBuilder
+from tests.fixtures.fake_fact_registry import fake_fact_registry
+
 
 
 class TestRuleBuilderBase:
@@ -25,23 +27,23 @@ class TestRuleBuilderBase:
 
 class TestCondParsing(TestRuleBuilderBase):
 
-    def test_cond_parsing_basic(self):
+    def test_cond_parsing_basic(self, fake_fact_registry):
         c = cond("age < 18")
         assert isinstance(c, Condition)
-        assert c.field == FieldRef(path="age", type=str)
+        assert c.field == FieldRef(path="age", type=int)
         assert c.operator == Operator.LT
-        assert c.value == "18"
+        assert c.value == 18
 
-    def test_cond_parsing_gte(self):
-        c = cond("score >= 100")
+    def test_cond_parsing_gte(self, fake_fact_registry):
+        c = cond("age >= 100")
         assert c.operator == Operator.GTE
-        assert c.value == "100"
+        assert c.value == 100
 
-    def test_inline_nested_condition(self):
+    def test_inline_nested_condition(self, fake_fact_registry):
         rule = (RuleBuilder().define('test', 'test_check')
-                .when(cond('val.child > 1'))
+                .when(cond('nested.key > 1'))
                 .then(self.grant_access))
-        facts = {"val": {"child": 2}}
+        facts = {"nested": {"key": 2}}
         assert isinstance(rule.condition.field, FieldRef)
         assert rule.condition.field.evaluate(facts) == "2"
 

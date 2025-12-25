@@ -6,8 +6,8 @@ from typing import Callable
 import psutil
 
 from shared.custom_exceptions import ProcessNotCreatedException
-from collection.probes.snapshot import DEFAULT_COLLECTORS
-from collection.probes.snapshot import ProcessSnapshot, _safe
+from core.probes.snapshot import DEFAULT_COLLECTORS
+from core.probes.snapshot import ProcessSnapshot, _safe
 from shared.services import logger
 
 

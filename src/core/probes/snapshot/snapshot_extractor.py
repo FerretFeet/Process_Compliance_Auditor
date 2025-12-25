@@ -1,6 +1,8 @@
 from typing import Callable, List, TypeVar, Generic
 
-S = TypeVar("S")
+from core.probes.snapshot.base import BaseSnapshot
+
+S = TypeVar("S", bound=BaseSnapshot)
 R = TypeVar("R")
 
 class SnapshotExtractor(Generic[S, R]):

@@ -1,22 +1,39 @@
 import platform
-
-import shared
 import tomllib
 from pathlib import Path
-
-from shared import utils
-from shared.custom_exceptions.custom_exception import InvalidProjectConfigurationError
+from typing import Any
 
 
-def get_project_config(fp: Path = utils.project_root / 'config' / 'project_config.toml'):
-    """Get the global config object."""
-    with Path.open(fp, 'rb') as f:
-        config = tomllib.load(f).get('project_config', {})
-    if not config:
-        raise InvalidProjectConfigurationError()
-    for key, val in config.items():
-        if val == "None":
-            config[key] = None
+class ConfigManager:
+    def __init__(self):
+        self._config: dict[str, Any] = {}
+        self._loaded = False
+        self.get_config()
 
-    config.setdefault('os', platform.system())
-    return config
+    def get(self, key: str) -> Any:
+        return self._config[key]
+
+    def get_config(self, fp: Path = None) -> dict:
+        if not self._loaded:
+            if fp is None:
+                fp = Path("config/project_config.toml")
+
+            with open(fp, 'rb') as f:
+                raw_data = tomllib.load(f).get('project_config', {})
+
+            self._config = {k: (None if v == "None" else v) for k, v in raw_data.items()}
+            self._config.setdefault('os', platform.system())
+            self._loaded = True
+
+        return self._config
+
+    def override(self, key: str, value: Any):
+        """Method specifically for testing."""
+        self._config[key] = value
+
+    def clear(self):
+        """Resets the state for fresh tests."""
+        self._config = {}
+        self._loaded = False
+
+cfg = ConfigManager()

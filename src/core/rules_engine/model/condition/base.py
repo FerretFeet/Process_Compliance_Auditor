@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Sequence, Iterable
+from typing import Sequence, Iterable, Type, Optional, Any
 
 from core.rules_engine.model.condition import Expression
 from core.rules_engine.model.field import FieldRef
@@ -12,7 +12,7 @@ from shared._common.operators import Operator, GroupOperator
 class Condition:
     field: FieldRef
     operator: Operator
-    value: str
+    value: Any
 
     def describe(self) -> str:
         # Use .value to match your test expectation ("==" instead of "Operator.EQ")

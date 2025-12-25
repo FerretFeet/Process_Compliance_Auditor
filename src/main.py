@@ -10,7 +10,6 @@ from collection.process_handler.process_handler import AuditedProcess, ProcessHa
 from core.rules_engine.rules_engine import RulesEngine
 from shared.services import logger
 from collection.snapshot_manager import SnapshotManager
-from shared.utils.get_project_config import get_project_config
 
 
 class Main:
@@ -68,7 +67,14 @@ class Main:
                 loop_start = time.monotonic()
 
                 ps_output = snapshot_manager.get_all_snapshots()
+
+
+
                 ### Unit Test Snapshot Manager and Probes, make sure package code is clean
+
+
+
+
 
 
                 facts: list = fact_processor.parse_facts(ps_output)
@@ -97,7 +103,6 @@ class Main:
 
 
 if __name__ == "__main__":
-    project_config = get_project_config()
     fact_processor = FactProcessor()
 
     rules_engine = RulesEngine(fact_processor.get_possible_facts)

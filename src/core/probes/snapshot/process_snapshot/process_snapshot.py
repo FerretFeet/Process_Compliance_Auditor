@@ -3,6 +3,11 @@ from dataclasses import dataclass, field
 from typing import Any, Dict
 import time
 
+import psutil
+
+from core.probes.snapshot.base import BaseSnapshot
+
+
 def _safe(callable_attr, default=None):
     """Helper to safely call psutil attributes that may raise exceptions."""
     try:
@@ -12,12 +17,13 @@ def _safe(callable_attr, default=None):
     except Exception:
         return default
 
-@dataclass
-class ProcessSnapshot:
+@dataclass(kw_only=True)
+class ProcessSnapshot(BaseSnapshot):
     pid: int
     name: str
     create_time: float
     snapshot_time: float = field(default_factory=time.time)
+    metadata: dict = field(default_factory=dict)
     is_running: bool = False
 
     identity: Dict[str, Any] = field(default_factory=dict)
@@ -52,6 +58,16 @@ class ProcessSnapshot:
             "raw": self.raw,
             **self.extensions,
         }
+
+    @classmethod
+    def from_source(cls, proc: psutil.Process) -> "ProcessSnapshot":
+        # We use 'cls' so that if you subclass this,
+        # it creates the correct child type.
+        return cls(
+            pid=proc.pid,
+            name=_safe(proc.name, "unknown"),
+            create_time=_safe(proc.create_time, 0.0)
+        )
 
 @dataclass
 class CpuSnapshot:

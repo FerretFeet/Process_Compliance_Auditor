@@ -44,5 +44,9 @@ class FactRegistry:
             raise TypeError(f"Expected {path} to be {spec.type}, got {type(value)}")
         return True
 
+    @classmethod
+    def _clear(cls):
+        cls._registry = {}
+
 
 # FactRegistry.register("cpu.percent", float, "CPU usage percent", {">", "<", ">=", "<=", "=="})
