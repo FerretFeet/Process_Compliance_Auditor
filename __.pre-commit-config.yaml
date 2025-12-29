@@ -1,0 +1,31 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 25.11.0  # Use the latest stable version
+    hooks:
+      - id: black
+        language_version: python3.11  # match your project interpreter
+        additional_dependencies: [ ]
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.14.6  # Use latest compatible version
+    hooks:
+      - id: ruff-check
+        args: [ "--fix" ]  # auto-fixable issues; remove if you don't want auto-fixes
+  # Bandit for code security
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.2
+    hooks:
+      - id: bandit
+        args: [ "-c", "pyproject.toml", "-r" ]
+  # Pytest protect against commiting broken code
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest check
+        entry: pytest tests
+        language: python
+        types: [ python ]
+        # Files to look for changes in to trigger the test run
+        files: '\.(py)$'
+        # Specify additional arguments, e.g., to run only fast tests or skip coverage
+        args: [ "--strict-markers" ]

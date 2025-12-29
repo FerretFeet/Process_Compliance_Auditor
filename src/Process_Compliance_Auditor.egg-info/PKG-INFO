@@ -1,0 +1,6 @@
+Metadata-Version: 2.4
+Name: Process_Compliance_Auditor
+Version: 0.1.0
+Summary: A program to check compliance of rules against a process and generate a readable output.
+Requires-Python: >=3.14
+Requires-Dist: psutil>=7.1.3
