@@ -5,7 +5,7 @@ rule1 = (
     .define("Cpu Percent", "Cpu usage is above percentage value")
     .source("process")
     .when("cpu.percent > 60")
-    .then(lambda x: print("Rule 1 Failed"))
+    .then(lambda : print("Rule 1 Failed"))
 )
 
 rule2 = (
@@ -13,7 +13,7 @@ rule2 = (
     .define("Cpu Percent", "Cpu usage is below percentage value")
     .source("process")
     .when("cpu.percent < 60")
-    .then(lambda x: print("Rule 2 Failed"))
+    .then(lambda : print("Rule 2 Failed"))
 )
 
 rule3 = (
@@ -24,7 +24,7 @@ rule3 = (
     .source("process")
     .when("cpu.percent < 60")
     .and_("memory.percent < 60")
-    .then(lambda x: print("Rule 1 Failed"))
+    .then(lambda : print("Rule 3 Failed"))
 )
 
 rule4 = (
@@ -33,5 +33,5 @@ rule4 = (
     .source("process")
     .when("cpu.percent < 60")
     .and_("memory.percent > 60")
-    .then(lambda x: print("Rule 1 Failed"))
+    .then(lambda : print("Rule 4 Failed"))
 )

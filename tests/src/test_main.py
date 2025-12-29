@@ -1,9 +1,13 @@
+import typing
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from core.compliance_engine import ComplianceEngine
+from core.fact_processor.fact_processor import FactProcessor
 from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model.rule import Action, Rule, SourceEnum
+from core.rules_engine.rule_builder.parsers import cond
 from main import Main
 from shared._common.operators import Operator
 
@@ -99,9 +103,6 @@ class TestMainE2E:
         mock_proc = MagicMock()
         MockProcess.return_value = mock_proc
 
-        from core.compliance_engine import ComplianceEngine
-        from core.fact_processor.fact_processor import FactProcessor
-
         # Real FactProcessor
         fact_registry = FactRegistry()
         fact_registry.register_raw(
@@ -127,7 +128,6 @@ class TestMainE2E:
         }
 
         # Create a simple Rule that matches the snapshot
-        from core.rules_engine.rule_builder.parsers import cond
 
         rule = Rule(
             name="AgeRule",
@@ -159,7 +159,7 @@ class TestMainE2E:
 
         # CLI context
         class FakeCLI:
-            rules = []
+            rules: typing.ClassVar = []
             process = 123
             time_limit = 0.01
             interval = 0.01

@@ -12,9 +12,8 @@ class TestActionBase:
     def setup_method(self):
         self.called = False
 
-        def sample_execute(facts) -> None:
+        def sample_execute() -> None:
             self.called = True
-            facts["executed"] = True
 
         self.action = Action(
             name="SampleAction", execute=sample_execute, description="A test action",
@@ -27,9 +26,8 @@ class TestActionBase:
         assert callable(self.action.execute)
 
     def test_call_executes_function(self):
-        self.action(self.facts)
+        self.action()
         assert self.called is True
-        assert self.facts.get("executed") is True
 
 
 class TestRule(TestActionBase):
@@ -45,7 +43,7 @@ class TestRule(TestActionBase):
             description="A sample rule_builder",
             condition=self.condition_set,
             action=self.action,
-            source=[SourceEnum.PROCESS],
+            source=SourceEnum.PROCESS,
         )
 
     def test_raises_strict_and_missing_fact(self):
@@ -91,9 +89,8 @@ class TestRule(TestActionBase):
         assert self.rule.action == self.action
 
     def test_rule_action_execution(self):
-        self.rule.action(self.facts)
+        self.rule.action()
         assert self.called is True
-        assert self.facts.get("executed") is True
 
     def test_rule_with_nested_condition_sets(self):
         nested_cond = ConditionSet.all(self.condition_set, Condition("z", Operator.NE, "0"))
@@ -102,7 +99,7 @@ class TestRule(TestActionBase):
             description="Rule with nested model sets",
             condition=nested_cond,
             action=self.action,
-            source=[SourceEnum.PROCESS],
+            source=SourceEnum.PROCESS,
         )
         assert isinstance(rule_nested.condition, ConditionSet)
         assert len(rule_nested.condition.conditions) == 3
@@ -146,7 +143,7 @@ class TestRule(TestActionBase):
                     },
                 ],
             },
-            "action": lambda facts: facts.update({"access_granted": True}),
+            "action": lambda : None,
             "source": "process",
         }
 

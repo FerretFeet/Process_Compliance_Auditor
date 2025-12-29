@@ -16,7 +16,7 @@ class SourceEnum(Enum):
     PROCESS = "process"
 
 
-ActionType = Callable[[dict], None]
+ActionType = Callable[[], None]
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,8 +25,8 @@ class Action:
     execute: ActionType
     description: str | None = None
 
-    def __call__(self, facts: dict) -> None:
-        self.execute(facts)
+    def __call__(self) -> None:
+        self.execute()
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,7 +137,7 @@ class Rule:
         raw_action = toml_data.get("action")
         if isinstance(raw_action, str):
 
-            def execute_action(facts: dict, msg=raw_action) -> None:
+            def execute_action(msg=raw_action) -> None:
                 pass
 
             action = Action(name="Log", execute=execute_action)

@@ -18,8 +18,8 @@ class TestRuleBuilderBase:
         self.vip = Condition("membership", Operator.EQ, "vip")
         self.region_allowed = Condition("region", Operator.IN, "['US', 'EU']")
 
-        self.grant_access = Action("grant_access", lambda facts: facts.update({"access": True}))
-        self.block_access = Action("block_access", lambda facts: facts.update({"access": False}))
+        self.grant_access = Action("grant_access", lambda : None)
+        self.block_access = Action("block_access", lambda : None)
 
 
 class TestCondParsing(TestRuleBuilderBase):
@@ -65,8 +65,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         assert rule.name == "adult_check"
         assert rule.condition == self.adult
         facts = {}
-        rule.action(facts)
-        assert facts["access"] is False
+        rule.action()
 
     def test_and_or_chaining(self):
         rule = (
@@ -102,8 +101,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
             == ConditionSet.all(self.adult, any_of(self.premium, self.vip)).group_operator
         )
         facts = {}
-        rule.action(facts)
-        assert facts["access"] is True
+        rule.action()
 
     def test_inline_lambda_action(self):
         captured = {}
@@ -112,11 +110,11 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
             RuleBuilder()
             .define("flagged_user", "Inline lambda")
             .when(self.adult)
-            .then(lambda f: captured.update({"executed": True}))
+            .then(lambda : captured.update({"executed": True}))
         )
         assert isinstance(rule.action, Action)
         facts = {}
-        rule.action(facts)
+        rule.action()
         assert captured.get("executed") is True
 
     def test_multiple_chaining_with_any_of(self):
@@ -207,7 +205,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
 
 # Dummy model and action for testing
 adult = Condition("age", Operator.GTE, "18")
-grant_access = Action(name="grant", execute=lambda facts: None)
+grant_access = Action(name="grant", execute=lambda : None)
 
 
 class TestRuleBuilderGroups:
@@ -248,7 +246,7 @@ class TestRuleBuilderGroups:
 
 # Dummy objects for testing
 adult = Condition("age", Operator.GTE, "18")
-grant_access = Action(name="grant", execute=lambda facts: None)
+grant_access = Action(name="grant", execute=lambda : None)
 
 
 class TestRuleBuilderAllAttributesDynamic:

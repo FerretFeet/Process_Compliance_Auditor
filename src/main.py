@@ -97,9 +97,12 @@ class Main:
                 # Test fact processor package - create a fake process snapshot and put it into the expected format and try to parse
 
                 output = self.compliance_engine.run(self.active_rules, facts)
-                for v in output.values():
+                print(f'\n\t==============Compliance Report:\t==============\n\n')
+                for k, v in output.items():
+                    print(f'{k}:\n')
                     for _val in v:
-                        pass
+                        print(f'\t{_val.name} : {_val.description}\n')
+
 
                 elapsed = time.monotonic() - loop_start
                 time.sleep(max(0, self.run_condition.interval - int(elapsed)))
