@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Mapping, Any
 
 from core.fact_processor.fact_registry import FactRegistry
+from core.rules_engine.model.rule import SourceEnum
 from shared._common.facts import FactSpec
 from shared.custom_exceptions import FactNotFoundException
 from shared.services import logger
@@ -43,8 +44,12 @@ class FactProcessor:
         """Get a set of available facts for a particular source."""
         returndict: dict[str, FactSpec] = {}
         for fact in self._all_facts.values():
-            if fact.source == source:
-                returndict[fact.path] = fact
+            try:
+                if fact.source == SourceEnum(source):
+                    returndict[fact.path] = fact
+            except ValueError as err:
+                msg = f'Error getting fact for {source}: {err}'
+                logger.warning(msg)
         return returndict
 
 

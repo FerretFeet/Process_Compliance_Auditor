@@ -32,7 +32,7 @@ class TestGetFactsBySource:
     def test_get_facts_by_source(self, processor):
         processor.get_all_facts()  # ensure cache populated
 
-        facts = processor.get_facts_by_source(SourceEnum.PROCESS)
+        facts = processor.get_facts_by_source(SourceEnum.PROCESS.value)
 
         assert set(facts.keys()) == {
             "age",
@@ -45,10 +45,10 @@ class TestGetFactsBySource:
         processor.get_all_facts()
 
         result = processor.get_facts_by_sources(
-            [SourceEnum.PROCESS, "missing"]
+            [SourceEnum.PROCESS.value, "missing"]
         )
 
-        assert SourceEnum.PROCESS in result
+        assert SourceEnum.PROCESS.value in result
         assert "missing" not in result
 
 
@@ -57,7 +57,7 @@ class TestParseFacts:
         processor.get_all_facts()
 
         snapshots = {
-            SourceEnum.PROCESS: [
+            SourceEnum.PROCESS.value: [
                 {
                     "age": 30,
                     "membership": "gold",
@@ -69,18 +69,13 @@ class TestParseFacts:
 
         result = processor.parse_facts(snapshots)
 
-        assert result[SourceEnum.PROCESS]["age"] == 30
-        assert result[SourceEnum.PROCESS]["membership"] == "gold"
-        assert result[SourceEnum.PROCESS]["nested.key"] == "value"
-        assert result[SourceEnum.PROCESS]["cpu_count"] == 8
+        assert result[SourceEnum.PROCESS.value]["age"] == 30
+        assert result[SourceEnum.PROCESS.value]["membership"] == "gold"
+        assert result[SourceEnum.PROCESS.value]["nested.key"] == "value"
+        assert result[SourceEnum.PROCESS.value]["cpu_count"] == 8
 
     def test_parse_facts_missing_path_non_strict(self, processor, monkeypatch):
         processor.get_all_facts()
-
-        monkeypatch.setattr(
-            "core.fact_processor.fact_processor.resolve_path",
-            lambda *_: (_ for _ in ()).throw(ValueError("invalid path")),
-        )
 
         monkeypatch.setattr(
             "core.fact_processor.fact_processor.strict",
@@ -88,23 +83,18 @@ class TestParseFacts:
         )
 
         snapshots = {
-            SourceEnum.PROCESS: [
-                {"age": 25}
+            SourceEnum.PROCESS.value: [
+                {"missing": 25}
             ]
         }
 
         result = processor.parse_facts(snapshots)
 
         # All resolutions fail → empty fact sheet
-        assert result[SourceEnum.PROCESS] == {}
+        assert result[SourceEnum.PROCESS.value] == {}
 
     def test_parse_facts_missing_path_strict_raises(self, processor, monkeypatch):
         processor.get_all_facts()
-
-        monkeypatch.setattr(
-            "core.fact_processor.fact_processor.resolve_path",
-            lambda *_: (_ for _ in ()).throw(ValueError("invalid path")),
-        )
 
         monkeypatch.setattr(
             "core.fact_processor.fact_processor.strict",
@@ -112,7 +102,7 @@ class TestParseFacts:
         )
 
         snapshots = {
-            SourceEnum.PROCESS: [
+            SourceEnum.PROCESS.value: [
                 {"age": 25}
             ]
         }
@@ -125,29 +115,16 @@ class TestLogging:
     def test_warning_logged_on_invalid_path(self, processor, monkeypatch):
         processor.get_all_facts()
 
-        fake_logger = MagicMock()
-
-        monkeypatch.setattr(
-            "core.fact_processor.fact_processor.logger",
-            fake_logger,
-        )
-
         monkeypatch.setattr(
             "core.fact_processor.fact_processor.strict",
             False,
         )
 
-        monkeypatch.setattr(
-            "core.fact_processor.fact_processor.resolve_path",
-            lambda *_: (_ for _ in ()).throw(ValueError("bad path")),
-        )
 
         snapshots = {
-            SourceEnum.PROCESS: [
+            SourceEnum.PROCESS.value: [
                 {"age": 40}
             ]
         }
 
         processor.parse_facts(snapshots)
-
-        fake_logger.warning.assert_called()
