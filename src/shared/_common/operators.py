@@ -22,6 +22,39 @@ class Operator(Enum):
     EXISTS = "exists"
     NOT_EXISTS = "not exists"
 
+NUMERIC_OPS = {
+    Operator.EQ, Operator.NE,
+    Operator.LT, Operator.LTE,
+    Operator.GT, Operator.GTE,
+    Operator.EXISTS, Operator.NOT_EXISTS,
+}
+
+STRING_OPS = {
+    Operator.EQ, Operator.NE,
+    Operator.CONTAINS,
+    Operator.STARTS_WITH,
+    Operator.ENDS_WITH,
+    Operator.IN, Operator.NOT_IN,
+    Operator.EXISTS, Operator.NOT_EXISTS,
+}
+
+BOOL_OPS = {
+    Operator.IS, Operator.IS_NOT,
+    Operator.EXISTS, Operator.NOT_EXISTS,
+}
+
+COLLECTION_OPS = {
+    Operator.CONTAINS,
+    Operator.IN, Operator.NOT_IN,
+    Operator.EXISTS, Operator.NOT_EXISTS,
+}
+
+STRUCT_OPS = {
+    Operator.CONTAINS,
+    Operator.EXISTS, Operator.NOT_EXISTS,
+}
+
+
 OPERATOR_FN = {
     Operator.EQ: operator.eq,
     Operator.NE: operator.ne,

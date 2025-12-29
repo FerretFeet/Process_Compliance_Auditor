@@ -105,7 +105,7 @@ class TestMainE2E:
 
         # Real FactProcessor
         fact_registry = FactRegistry()
-        fact_registry.register(
+        fact_registry.register_raw(
             path="age",
             type_= int,
             source=SourceEnum.PROCESS,

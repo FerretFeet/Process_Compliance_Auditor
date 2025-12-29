@@ -19,7 +19,7 @@ def clear_registry():
 
 class TestFactRegistryRegister:
     def test_register_fact_success(self):
-        FactRegistry.register(
+        FactRegistry.register_raw(
             path="cpu.percent",
             type_=int,
             source=[SourceEnum.PROCESS],
@@ -37,7 +37,7 @@ class TestFactRegistryRegister:
         assert fact.description == "CPU usage percentage"
 
     def test_register_duplicate_fact_raises(self):
-        FactRegistry.register(
+        FactRegistry.register_raw(
             path="process.pid",
             type_=int,
             source=[SourceEnum.PROCESS],
@@ -45,7 +45,7 @@ class TestFactRegistryRegister:
         )
 
         with pytest.raises(ValueError, match="already registered"):
-            FactRegistry.register(
+            FactRegistry.register_raw(
                 path="process.pid",
                 type_=int,
                 source=[SourceEnum.PROCESS],
@@ -55,7 +55,7 @@ class TestFactRegistryRegister:
 
 class TestFactRegistryGet:
     def test_get_fact_success(self):
-        FactRegistry.register(
+        FactRegistry.register_raw(
             path="user.name",
             type_=str,
             source=[SourceEnum.PROCESS],
@@ -72,7 +72,7 @@ class TestFactRegistryGet:
 
 class TestFactRegistryAllFacts:
     def test_all_facts_returns_copy(self):
-        FactRegistry.register(
+        FactRegistry.register_raw(
             path="system.uptime",
             type_=int,
             source=[SourceEnum.PROCESS],
@@ -91,7 +91,7 @@ class TestFactRegistryAllFacts:
 
 class TestFactRegistryValidate:
     def test_validate_correct_type(self):
-        FactRegistry.register(
+        FactRegistry.register_raw(
             path="system.load",
             type_=float,
             source=[SourceEnum.PROCESS],
@@ -101,7 +101,7 @@ class TestFactRegistryValidate:
         assert FactRegistry.validate("system.load", 1.5) is True
 
     def test_validate_none_is_allowed(self):
-        FactRegistry.register(
+        FactRegistry.register_raw(
             path="system.hostname",
             type_=str,
             source=[SourceEnum.PROCESS],
@@ -111,7 +111,7 @@ class TestFactRegistryValidate:
         assert FactRegistry.validate("system.hostname", None) is True
 
     def test_validate_wrong_type_raises(self):
-        FactRegistry.register(
+        FactRegistry.register_raw(
             path="process.threads",
             type_=int,
             source=[SourceEnum.PROCESS],
@@ -124,7 +124,7 @@ class TestFactRegistryValidate:
 
 class TestFactRegistryClear:
     def test_clear_registry(self):
-        FactRegistry.register(
+        FactRegistry.register_raw(
             path="system.arch",
             type_=str,
             source=[SourceEnum.PROCESS],

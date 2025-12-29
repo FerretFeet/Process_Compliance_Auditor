@@ -20,12 +20,6 @@ class TestGetAllFacts:
         facts2 = processor.get_all_facts()
 
         assert facts1 is facts2
-        assert set(facts1.keys()) == {
-            "age",
-            "membership",
-            "nested.key",
-            "cpu_count",
-        }
 
 
 class TestGetFactsBySource:

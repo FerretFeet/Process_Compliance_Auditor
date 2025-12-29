@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import Type, Any, Dict, Set
 
+from core.fact_processor.available_facts.process_facts import PROCESS_FACTS
 from core.rules_engine.model.rule import SourceEnum
 from shared._common.facts import FactSpec
 from shared._common.operators import Operator
@@ -10,7 +11,7 @@ class FactRegistry:
     _registry: Dict[str, FactSpec] = {}
 
     @classmethod
-    def register(
+    def register_raw(
         cls,
         path: str,
         type_: Type,
@@ -31,6 +32,14 @@ class FactRegistry:
         )
 
         cls._registry[path] = fact
+
+    @classmethod
+    def register_fact(cls, fact: FactSpec) -> None:
+        if fact.path in cls._registry:
+            raise ValueError(f"Fact '{fact.path}' is already registered")
+        cls._registry[fact.path] = fact
+
+
     @classmethod
     def get_fact(cls, path: str) -> FactSpec:
         if path not in cls._registry:
@@ -54,5 +63,8 @@ class FactRegistry:
     def _clear(cls):
         cls._registry = {}
 
+def register_defaults():
+    for fact in PROCESS_FACTS:
+        FactRegistry.register_fact(fact)
 
-# FactRegistry.register("cpu.percent", float, "CPU usage percent", {">", "<", ">=", "<=", "=="})
+register_defaults()
