@@ -2,7 +2,10 @@ from typing import Any
 
 
 def resolve_path(obj: Any, path: str) -> Any:
-    """Resolve a dot-separated path across objects and dicts."""
+    """Resolve a dot-separated path across objects and dicts.
+
+    Raises:
+        ValueError: If the path cannot be resolved."""
     if not path:
         raise ValueError("Path cannot be empty")
 

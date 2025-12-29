@@ -14,7 +14,7 @@ class FactRegistry:
         cls,
         path: str,
         type_: Type,
-        source: list[SourceEnum],
+        source: SourceEnum,
         allowed_operators: Set[Operator],
         description: str = "",
         allowed_values: Set[str] | None = None,

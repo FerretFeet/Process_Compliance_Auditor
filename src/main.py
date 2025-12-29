@@ -71,6 +71,11 @@ class Main:
                 ps_output: dict[str, list[BaseSnapshot]] = snapshot_manager.get_all_snapshots()
                 facts: dict[str, dict[str, Any]] = fact_processor.parse_facts(ps_output)
 
+                # TODO:
+                    # Fix code documentation: fully document all classes and functions to this point
+                    # Remove Strict from config or make as parameter to functions that use it
+                    # Fix logging so only log errors if not also raising exception, instead of both
+                    # Test fact processor package - create a fake process snapshot and put it into the expected format and try to parse
 
                 output = compliance_engine.run(self.active_rules, facts)
 
@@ -99,7 +104,7 @@ class Main:
 if __name__ == "__main__":
     fact_processor = FactProcessor()
 
-    rules_engine = RulesEngine(fact_processor.get_possible_facts)
+    rules_engine = RulesEngine(fact_processor.get_all_facts)
     compliance_engine = ComplianceEngine()
     cli_arg_parser = CLI_ArgParser()
     process_handler = ProcessHandler()

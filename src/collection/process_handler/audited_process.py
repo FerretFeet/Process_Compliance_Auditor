@@ -38,6 +38,7 @@ class AuditedProcess:
             return self.process.is_running() and self.process.status() != psutil.STATUS_ZOMBIE
         except psutil.NoSuchProcess:
             return False
+
     def _initialize_from_pid(self):
         """Attach to an existing process using the PID."""
         if self.pid:
@@ -124,7 +125,7 @@ class AuditedProcess:
         return gone, alive
 
 
-    def snapshot(self, collectors=None) -> ProcessSnapshot | None:
+    def ____snapshot(self, collectors=None) -> ProcessSnapshot | None:
         proc = self.process
         if not proc:
             return None

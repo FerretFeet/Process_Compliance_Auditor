@@ -16,7 +16,7 @@ class FactSpecProtocol(Protocol):
 class FactSpec:
     path: str
     type: Type
-    source: list[SourceEnum]
+    source: SourceEnum
     description: str = ""
     allowed_operators: Collection[Operator] = field(default_factory=list)
     allowed_values: Optional[Collection[str]] = field(default_factory=list)

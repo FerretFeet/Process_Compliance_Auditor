@@ -1,46 +1,87 @@
+from collections import defaultdict
 from typing import Mapping, Any
 
-from core.fact_processor.fact_sheet import FactSheet
 from core.fact_processor.fact_registry import FactRegistry
-from shared._common.facts import FactSpec, FactData
+from shared._common.facts import FactSpec
 from shared.custom_exceptions import FactNotFoundException
 from shared.services import logger
 from shared.utils import cfg
 from shared.utils.resolve_path import resolve_path
 
-
+# FIXME: figure out if strict is something we want to keep
+# If so, add as parameter to function and fix tests
+# If no, remove from function and fix tests
 strict = cfg.get('strict')
 
 class FactProcessor:
     def __init__(self):
         self._all_facts: dict[str, FactSpec] | None = None
 
-    def get_possible_facts(self) -> dict[str, FactSpec]:
+    def get_all_facts(self) -> dict[str, FactSpec]:
+        """
+        Get all available facts.
+
+        Returns:
+            dict[str, FactSpec]: A dict of key (FactSpec.path) value FactSpec
+
+        """
         if self._all_facts is None:
             self._all_facts = FactRegistry.all_facts()
         return self._all_facts
+
+    def get_facts_by_sources(self, sources: list[str]) -> dict[str, dict[str, FactSpec]]:
+        """Get all available facts from all passed sources."""
+
+        returndict = {}
+        for source in sources:
+            val = self.get_facts_by_source(source)
+            if val:
+                returndict[source] = val
+        return returndict
+
+    def get_facts_by_source(self, source: str) -> dict[str, FactSpec]:
+        """Get a set of available facts for a particular source."""
+        returndict: dict[str, FactSpec] = {}
+        for fact in self._all_facts.values():
+            if fact.source == source:
+                returndict[fact.path] = fact
+        return returndict
+
+
 
     def parse_facts(self, snapshots: dict[str, list[object | dict]]) -> dict[str, dict[str, Any]]:
         """
         Get all fact data from snapshots.
 
-        Raises FactNotFoundException if strict and no data can be found for a particular fact.
+        Args:
+            snapshots (dict[str, list[object | dict]]): A dict of key (snapshot_source) value list(snapshot)
+
+        Returns:
+            dict[str, dict[str, Any]]: A dict of key (source) value FactSheet
+
+        Exception:
+            FactNotFoundException: if strict and no data can be found for a particular fact.
         """
         factsheets = {}
-        for fact in self._all_facts.values():
-            for s in fact.source:
-                if s not in factsheets:
-                    factsheets[s] = {}
-                try:
-                    f = resolve_path(snapshots[s.value], fact.path)
+        for src, snapshots in snapshots.items():
+            #TODO: Limited to one snapshot per source
+            # Unsure if worth it to implement multi snapshot per source for multiple processes.
+            # Disregard for now
+            # 12/26/2025
 
-                    factsheets[s.value][fact.path] = f
+            factsheets[src] = {}
+            facts = self.get_facts_by_source(src)
+            for snapshot in snapshots:
+                for fact in facts.values():
 
-                except ValueError as err:
-                    msg = f'{fact.path} is not a valid path for {type(s).__name__}'
-                    logger.warning(msg)
-                    if strict:
-                        raise FactNotFoundException(msg) from err
+                    try:
+                        factsheets[src][fact.path] = resolve_path(snapshot, fact.path)
+
+                    except ValueError as err:
+                        msg = f'{fact.path} is not a valid path for {type(snapshot).__name__}'
+                        logger.warning(msg)
+                        if strict:
+                            raise FactNotFoundException(msg) from err
 
         return factsheets
 

@@ -19,11 +19,6 @@ class SnapshotManager:
             returndict.setdefault(probe.name, []).append(probe.collect())
         return returndict
 
-    def __get_process_snapshots(self) -> list[BaseSnapshot]:
-        # return [probe.collect() for probe in self._probes]
-        returndict = {}
-        for probe in self._probes:
-            returndict.setdefault(probe.name, []).append(probe)
 
     def add_probe(self, probe: Probe) -> None:
         self._probes.append(probe)
