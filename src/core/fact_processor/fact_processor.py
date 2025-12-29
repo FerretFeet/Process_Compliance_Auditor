@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import asdict
 from typing import Mapping, Any
 
 from core.fact_processor.fact_registry import FactRegistry
@@ -15,8 +16,8 @@ from shared.utils.resolve_path import resolve_path
 strict = cfg.get('strict')
 
 class FactProcessor:
-    def __init__(self):
-        self._all_facts: dict[str, FactSpec] | None = None
+    def __init__(self, fact_registry: FactRegistry | None = None) -> None:
+        self._all_facts: dict[str, FactSpec] | None = fact_registry.all_facts() if fact_registry else None
 
     def get_all_facts(self) -> dict[str, FactSpec]:
         """
@@ -78,7 +79,6 @@ class FactProcessor:
             facts = self.get_facts_by_source(src)
             for snapshot in snapshots:
                 for fact in facts.values():
-
                     try:
                         factsheets[src][fact.path] = resolve_path(snapshot, fact.path)
 

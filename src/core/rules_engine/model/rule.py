@@ -28,7 +28,7 @@ class Rule:
     description: str
     condition: Expression
     action: Action
-    source: list[SourceEnum]
+    source: SourceEnum
     group: str = ""
     mutually_exclusive_group: str = ""
     enabled: bool = field(default=True)
@@ -94,9 +94,9 @@ class Rule:
         if raw_source is None:
             source = []  # default empty list if not specified
         elif isinstance(raw_source, str):
-            source = [SourceEnum(raw_source)]
-        elif isinstance(raw_source, list):
-            source = [SourceEnum(s) if isinstance(s, str) else s for s in raw_source]
+            source = SourceEnum(raw_source)
+        # elif isinstance(raw_source, list):
+        #     source = [SourceEnum(s) if isinstance(s, str) else s for s in raw_source]
         else:
             raise InvalidRuleDataError(f"Invalid source type: {type(raw_source)}")
 

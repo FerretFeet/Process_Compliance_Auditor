@@ -1,8 +1,31 @@
+from typing import Any
 
+from core.rules_engine.eval.condition_evaluator import ConditionEvaluator as ce, ConditionEvaluator
+from core.rules_engine.model import Rule
+from shared.utils.resolve_path import resolve_path
 
 class ComplianceEngine:
-    def __init__(self):
-        pass
+    def __init__(self, condition_evaluator: ConditionEvaluator = ce) -> None:
+        self.condition_evaluator = condition_evaluator
 
-    def run(self):
-        pass
+
+    def run(self, rules: dict[str, Rule], factsheets: dict[str, dict[str, Any]]):
+        """Check that facts are as defined in Rules.
+
+        Args:
+            rules: dict[rule.path, Rule]. container of all rules to check
+            factsheets: dict[fact.source, dict[fact.path, Any]].
+            """
+        result = {
+            "passed": [],
+            "failed": [],
+        }
+        for rule in rules.values():
+            factgroup = factsheets[rule.source.value]
+            if not self.condition_evaluator.evaluate(rule.condition, factgroup):
+                rule.action.execute(factgroup)
+                result['failed'].append(rule)
+            else:
+                result['passed'].append(rule)
+
+        return result

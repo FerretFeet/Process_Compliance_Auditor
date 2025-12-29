@@ -65,9 +65,9 @@ class RuleBuilder:
         if isinstance(source, str):
             source = SourceEnum(source)
         if self._source is None:
-            self._source = [source]
+            self._source = source
         else:
-            self._source.append(source)
+            raise ValueError("source() already called.")
         return self
 
     def and_(self, condition: Expression) -> "RuleBuilder":

@@ -3,58 +3,63 @@ import time
 from dataclasses import dataclass
 from typing import Callable, Any
 
+from collection.snapshot_manager.snapshot_manager import SnapshotManager
 from core.probes.snapshot.base import BaseSnapshot
-from interface.arg_parser import CLI_ArgParser, CliContext
 from core.compliance_engine import ComplianceEngine
 from core.fact_processor.fact_processor import FactProcessor
 from collection.process_handler.process_handler import AuditedProcess, ProcessHandler
 from core.rules_engine.rules_engine import RulesEngine
+from interface.arg_parser.cli_arg_parser import CliContext, CLI_ArgParser
 from shared.custom_exceptions import FactNotFoundException
 from shared.services import logger
-from collection.snapshot_manager import SnapshotManager
+
+
+@dataclass(slots=True)
+class RunCondition:
+    start: float
+    time_limit: int
+    interval: int
+    process_num_active_caller: Callable[[], int]
+
+    def is_active(self) -> bool:
+        if self.process_num_active_caller() == 0: return False
+        if not self.time_limit:
+            return True
+        elif self.time_limit > time.monotonic() - self.start:
+            return True
+        return False
+
 
 
 class Main:
 
     def __init__(self, rules_engine: RulesEngine, compliance_engine: ComplianceEngine,
                  cli_context: CliContext, process_handler: ProcessHandler,
-                 snapshot_manager):
+                 snapshot_manager: SnapshotManager, fact_processor: FactProcessor,
+                 ):
         self.rules_engine = rules_engine
         self.compliance_engine = compliance_engine
         self.cli_context = cli_context
         self.process_handler = process_handler
         self.snapshot_manager = snapshot_manager
+        self.fact_processor = fact_processor
 
         self.active_rules = None
         self.run_condition = None
 
     def setup(self) -> None:
-        self.active_rules = rules_engine.match_rules(rules_engine.get_rules(), self.cli_context.rules)
+        self.active_rules = self.rules_engine.match_rules(self.rules_engine.get_rules(), self.cli_context.rules)
         self.process_handler.add_process(AuditedProcess(self.cli_context.process))
 
         self.snapshot_manager.add_probe(self.process_handler.get_processes())
 
-        self.run_condition = self.RunCondition(time.monotonic(), self.cli_context.time_limit,
+        self.run_condition = RunCondition(time.monotonic(), self.cli_context.time_limit,
                                           self.cli_context.interval, self.process_handler.num_active)
 
 
-    @dataclass(slots=True)
-    class RunCondition:
-        start: float
-        time_limit: int
-        interval: int
-        process_num_active_caller: Callable[[], int]
-
-        def is_active(self) -> bool:
-            if self.process_num_active_caller() == 0: return False
-            if not self.time_limit: return True
-            elif self.time_limit > time.monotonic() - self.start: return True
-            return False
 
 
-
-    def main(self, *, rules_engine, compliance_engine, cli_context: CliContext, process_handler,
-             snapshot_manager) -> int:
+    def main(self) -> int:
         """The main function.
 
         - Load and filter rules based on cli arguments
@@ -68,8 +73,8 @@ class Main:
             while self.run_condition.is_active():
                 loop_start = time.monotonic()
 
-                ps_output: dict[str, list[BaseSnapshot]] = snapshot_manager.get_all_snapshots()
-                facts: dict[str, dict[str, Any]] = fact_processor.parse_facts(ps_output)
+                ps_output: dict[str, list[BaseSnapshot]] = self.snapshot_manager.get_all_snapshots()
+                facts: dict[str, dict[str, Any]] = self.fact_processor.parse_facts(ps_output)
 
                 # TODO:
                     # Fix code documentation: fully document all classes and functions to this point
@@ -77,8 +82,8 @@ class Main:
                     # Fix logging so only log errors if not also raising exception, instead of both
                     # Test fact processor package - create a fake process snapshot and put it into the expected format and try to parse
 
-                output = compliance_engine.run(self.active_rules, facts)
-
+                output = self.compliance_engine.run(self.active_rules, facts)
+                print(f'Main Loop Output::\n')
                 print(output)
 
                 elapsed = time.monotonic() - loop_start
@@ -91,12 +96,12 @@ class Main:
         except (FactNotFoundException) as err:
             logger.error(err)
         finally:
-            if cli_context.create_process_flag:
+            if self.cli_context.create_process_flag:
                 # python created the process
-                process_handler.shutdown_all()
+                self.process_handler.shutdown_all()
             else:
                 # continue process, end python.
-                process_handler.remove_all()
+                self.process_handler.remove_all()
 
         return 0
 
@@ -110,13 +115,14 @@ if __name__ == "__main__":
     process_handler = ProcessHandler()
     snapshot_manager = SnapshotManager()
 
-
-    main(
+    main = Main(
         rules_engine=rules_engine,
         compliance_engine=compliance_engine,
         cli_context=cli_arg_parser.get_context(),
         process_handler=process_handler,
-        snapshot_manager=snapshot_manager
+        snapshot_manager=snapshot_manager,
+        fact_processor=fact_processor,
     )
+    main.main()
 
 
