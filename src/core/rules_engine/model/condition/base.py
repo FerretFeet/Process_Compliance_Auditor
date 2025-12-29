@@ -55,7 +55,9 @@ class ConditionSet:
             raise ValueError(f"ConditionSet requires at least two conditions")
 
     @staticmethod
-    def _flatten(operator: GroupOperator, conditions: Iterable[Expression]) -> tuple[Expression, ...]:
+    def _flatten(
+        operator: GroupOperator, conditions: Iterable[Expression]
+    ) -> tuple[Expression, ...]:
         flattened = []
         for c in conditions:
             if isinstance(c, ConditionSet) and c.group_operator is operator:

@@ -32,9 +32,7 @@ class TestMainE2E:
 
         # FactProcessor converts snapshots into dicts
         self.fake_fact_processor = MagicMock()
-        self.fake_fact_processor.parse_facts.return_value = {
-            "process": {"age": 42}
-        }
+        self.fake_fact_processor.parse_facts.return_value = {"process": {"age": 42}}
 
         # ComplianceEngine consumes factsheets and returns results
         self.fake_compliance_engine = MagicMock()
@@ -93,8 +91,6 @@ class TestMainE2E:
         self.fake_process_handler.add_process.assert_called_once_with(mock_proc)
         self.fake_process_handler.remove_all.assert_called_once()
 
-
-
     @patch("main.AuditedProcess")
     @patch("time.sleep", return_value=None)  # prevent actual sleeping
     def test_main_e2e_minimal_realistic(self, mock_sleep, MockProcess):
@@ -108,10 +104,7 @@ class TestMainE2E:
         # Real FactProcessor
         fact_registry = FactRegistry()
         fact_registry.register_raw(
-            path="age",
-            type_= int,
-            source=SourceEnum.PROCESS,
-            allowed_operators=set(Operator)
+            path="age", type_=int, source=SourceEnum.PROCESS, allowed_operators=set(Operator)
         )
 
         fact_processor = FactProcessor(fact_registry)
@@ -134,6 +127,7 @@ class TestMainE2E:
 
         # Create a simple Rule that matches the snapshot
         from core.rules_engine.rule_builder.parsers import cond
+
         rule = Rule(
             name="AgeRule",
             description="Checks age",
@@ -191,9 +185,7 @@ class TestMainE2E:
         assert result == 0
 
         # FactProcessor should parse snapshots correctly
-        parsed_facts = fact_processor.parse_facts(
-            fake_snapshot_manager.get_all_snapshots()
-        )
+        parsed_facts = fact_processor.parse_facts(fake_snapshot_manager.get_all_snapshots())
         assert parsed_facts["process"]["age"] == 42
 
         # ComplianceEngine run returns correct results
@@ -204,5 +196,3 @@ class TestMainE2E:
         # ProcessHandler add/remove calls
         fake_process_handler.add_process.assert_called_once_with(mock_proc)
         fake_process_handler.remove_all.assert_called_once()
-
-

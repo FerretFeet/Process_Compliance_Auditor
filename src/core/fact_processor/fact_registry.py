@@ -39,7 +39,6 @@ class FactRegistry:
             raise ValueError(f"Fact '{fact.path}' is already registered")
         cls._registry[fact.path] = fact
 
-
     @classmethod
     def get_fact(cls, path: str) -> FactSpec:
         if path not in cls._registry:
@@ -63,8 +62,10 @@ class FactRegistry:
     def _clear(cls):
         cls._registry = {}
 
+
 def register_defaults():
     for fact in PROCESS_FACTS:
         FactRegistry.register_fact(fact)
+
 
 register_defaults()

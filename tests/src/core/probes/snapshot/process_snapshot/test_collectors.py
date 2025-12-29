@@ -5,14 +5,16 @@ from core.probes.snapshot.process_snapshot.collectors import (
     collect_identity,
     collect_cpu,
     collect_memory,
-    collect_relationships
+    collect_relationships,
 )
-from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, CpuSnapshot, MemorySnapshot
+from core.probes.snapshot.process_snapshot.process_snapshot import (
+    ProcessSnapshot,
+    CpuSnapshot,
+    MemorySnapshot,
+)
 
 
 class TestCollectors:
-
-
 
     def test_collect_identity(self, mock_proc, empty_snap):
         mock_proc.ppid.return_value = 1

@@ -46,9 +46,7 @@ def make_rule(name="rule"):
 
 
 class TestComplianceEnginePassFail:
-    def test_rule_passes_when_condition_true(
-        self, engine, evaluator, factsheets
-    ):
+    def test_rule_passes_when_condition_true(self, engine, evaluator, factsheets):
         rule = make_rule()
 
         evaluator.evaluate.return_value = True
@@ -67,9 +65,7 @@ class TestComplianceEnginePassFail:
         )
         rule.action.execute.assert_not_called()
 
-    def test_rule_fails_when_condition_false(
-        self, engine, evaluator, factsheets
-    ):
+    def test_rule_fails_when_condition_false(self, engine, evaluator, factsheets):
         rule = make_rule()
 
         evaluator.evaluate.return_value = False
@@ -86,15 +82,11 @@ class TestComplianceEnginePassFail:
             rule.condition,
             factsheets["process"],
         )
-        rule.action.execute.assert_called_once_with(
-            factsheets["process"]
-        )
+        rule.action.execute.assert_called_once_with(factsheets["process"])
 
 
 class TestMultipleRules:
-    def test_mixed_pass_and_fail(
-        self, engine, evaluator, factsheets
-    ):
+    def test_mixed_pass_and_fail(self, engine, evaluator, factsheets):
         passing = make_rule(name="pass")
         failing = make_rule(name="fail")
 
@@ -119,9 +111,7 @@ class TestMultipleRules:
 
 
 class TestFactRouting:
-    def test_factsheet_selected_by_rule_source_value(
-        self, engine, evaluator
-    ):
+    def test_factsheet_selected_by_rule_source_value(self, engine, evaluator):
         rule = make_rule()
 
         factsheets = {
@@ -146,9 +136,7 @@ class TestFactRouting:
 
 
 class TestExecutionContract:
-    def test_action_called_only_on_failure(
-        self, engine, evaluator, factsheets
-    ):
+    def test_action_called_only_on_failure(self, engine, evaluator, factsheets):
         rule = make_rule()
 
         evaluator.evaluate.return_value = False
@@ -160,9 +148,7 @@ class TestExecutionContract:
 
         rule.action.execute.assert_called_once()
 
-    def test_action_not_called_on_pass(
-        self, engine, evaluator, factsheets
-    ):
+    def test_action_not_called_on_pass(self, engine, evaluator, factsheets):
         rule = make_rule()
 
         evaluator.evaluate.return_value = True

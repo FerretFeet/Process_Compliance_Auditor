@@ -24,6 +24,7 @@ class TestCLIArgParserInitialization:
         assert e.type == SystemExit
         assert e.value.code == 2
 
+
 class TestCLIArgParserArguments:
     def test_rules_argument(self, monkeypatch):
         monkeypatch.setattr(sys, "argv", ["program", "1234", "-r", "rule1", "rule2"])

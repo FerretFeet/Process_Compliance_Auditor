@@ -1,4 +1,5 @@
 """"""
+
 import hashlib
 from dataclasses import dataclass, field
 from enum import Enum
@@ -7,20 +8,23 @@ from typing import Optional, Callable
 from core.rules_engine.model.condition import Expression
 from shared.custom_exceptions.custom_exception import InvalidRuleDataError
 
+
 class SourceEnum(Enum):
     PROCESS = "process"
 
+
 ActionType = Callable[[dict], None]
+
 
 @dataclass(frozen=True, slots=True)
 class Action:
     name: str
-    execute:ActionType
+    execute: ActionType
     description: Optional[str] = None
-
 
     def __call__(self, facts: dict) -> None:
         self.execute(facts)
+
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -35,7 +39,6 @@ class Rule:
     priority: int = field(default=0)
     metadata: dict = field(default_factory=dict)
     id: str = field(init=False)
-
 
     def __post_init__(self):
         object.__setattr__(self, "id", self._generate_id())
@@ -125,6 +128,7 @@ class Rule:
         # Parse action
         raw_action = toml_data.get("action")
         if isinstance(raw_action, str):
+
             def execute_action(facts: dict, msg=raw_action):
                 print(msg)
 

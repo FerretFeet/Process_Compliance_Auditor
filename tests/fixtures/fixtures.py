@@ -20,14 +20,12 @@ def mock_proc():
     proc.create_time.return_value = 12345.67
     return proc
 
+
 @pytest.fixture
 def empty_snap():
     """Standard ProcessSnapshot skeleton."""
-    return ProcessSnapshot(
-        pid=1234,
-        name="test_proc",
-        create_time=0.0
-    )
+    return ProcessSnapshot(pid=1234, name="test_proc", create_time=0.0)
+
 
 @pytest.fixture
 def toml_data(sample_rule):
@@ -39,10 +37,11 @@ def toml_data(sample_rule):
                 "group": sample_rule.group,
                 "model": sample_rule.condition.describe(),
                 "action": lambda facts: facts.update({"access_granted": True}),
-                "source": 'process'
+                "source": "process",
             }
         ]
     }
+
 
 @pytest.fixture
 def sample_rule():
@@ -54,5 +53,5 @@ def sample_rule():
         condition=fake_condition,  # Condition or ConditionSet
         action=Action(name="block_access", execute=lambda facts: facts.update({"blocked": True})),
         group="cpu",
-        source=[SourceEnum.PROCESS]
+        source=[SourceEnum.PROCESS],
     )

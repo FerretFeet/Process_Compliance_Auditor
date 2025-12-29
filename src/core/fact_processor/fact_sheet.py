@@ -1,5 +1,7 @@
 from typing import Any
 from collection.process_handler import ProcessSnapshot
+
+
 class FactSheet:
     """
     An interface to translate a ProcessSnapshot into a dict of audit-friendly facts.
@@ -39,8 +41,12 @@ class FactSheet:
         facts["cpu_affinity"] = snapshot.cpu_affinity
 
         # Memory info
-        facts["memory_rss_mb"] = snapshot.memory_info.rss / 1024**2 if snapshot.memory_info else None
-        facts["memory_vms_mb"] = snapshot.memory_info.vms / 1024**2 if snapshot.memory_info else None
+        facts["memory_rss_mb"] = (
+            snapshot.memory_info.rss / 1024**2 if snapshot.memory_info else None
+        )
+        facts["memory_vms_mb"] = (
+            snapshot.memory_info.vms / 1024**2 if snapshot.memory_info else None
+        )
         facts["memory_percent"] = snapshot.memory_percent
         facts["num_memory_maps"] = len(snapshot.memory_maps) if snapshot.memory_maps else 0
 
@@ -53,12 +59,18 @@ class FactSheet:
         # Threads and file descriptors
         facts["num_threads"] = snapshot.num_threads
         facts["num_fds"] = snapshot.num_fds
-        facts["num_ctx_switches_voluntary"] = snapshot.num_ctx_switches[0] if snapshot.num_ctx_switches else None
-        facts["num_ctx_switches_involuntary"] = snapshot.num_ctx_switches[1] if snapshot.num_ctx_switches else None
+        facts["num_ctx_switches_voluntary"] = (
+            snapshot.num_ctx_switches[0] if snapshot.num_ctx_switches else None
+        )
+        facts["num_ctx_switches_involuntary"] = (
+            snapshot.num_ctx_switches[1] if snapshot.num_ctx_switches else None
+        )
         facts["num_open_files"] = len(snapshot.open_files) if snapshot.open_files else 0
 
         # Network connections
-        facts["num_net_connections"] = len(snapshot.net_connections) if snapshot.net_connections else 0
+        facts["num_net_connections"] = (
+            len(snapshot.net_connections) if snapshot.net_connections else 0
+        )
 
         # Security identifiers
         facts["uids"] = snapshot.uids
@@ -69,7 +81,9 @@ class FactSheet:
 
         # Derived/normalized facts
         facts["thread_ids"] = [t.id for t in snapshot.threads] if snapshot.threads else []
-        facts["open_file_paths"] = [f.path for f in snapshot.open_files] if snapshot.open_files else []
+        facts["open_file_paths"] = (
+            [f.path for f in snapshot.open_files] if snapshot.open_files else []
+        )
 
         return facts
 

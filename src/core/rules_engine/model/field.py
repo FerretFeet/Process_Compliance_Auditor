@@ -6,6 +6,7 @@ from shared.utils.resolve_path import resolve_path
 @dataclass(frozen=True)
 class FieldRef:
     """Available model for conditions."""
+
     path: str
     type: type
 
@@ -17,7 +18,7 @@ class FieldRef:
             try:
                 value = self.type(value)
             except ValueError:
-                raise TypeError(f"Expected {self.path} to be {self.type}, got {type(value)}.  Attempted Cast Failed.")
+                raise TypeError(
+                    f"Expected {self.path} to be {self.type}, got {type(value)}.  Attempted Cast Failed."
+                )
         return value
-
-

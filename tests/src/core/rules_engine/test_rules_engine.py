@@ -22,6 +22,7 @@ FactRegistry.register_raw(
     set(Operator),
 )
 
+
 class MockFact(FactSpecProtocol):
     def __init__(self, typ, allowed_ops=None, allowed_vals=None):
 
@@ -39,10 +40,11 @@ def mock_fact_provider(fake_fact_registry):
 
 
 def test_builtin_rules_loaded(sample_rule, mock_fact_provider):
-    engine = RulesEngine(mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"))
+    engine = RulesEngine(
+        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null")
+    )
     assert sample_rule.id in engine.rules
     assert engine.rules[sample_rule.id] == sample_rule
-
 
 
 def test_toml_rules_loaded(mock_fact_provider, fake_fact_registry):
@@ -64,10 +66,9 @@ source = "process"
     m = mock_open(read_data=toml_bytes)
     # Ensure open is in 'rb' mode as expected by RulesEngine
     m.return_value.__enter__.return_value.read = lambda: toml_bytes
-    _path = project_root / cfg.get('rules_path')
+    _path = project_root / cfg.get("rules_path")
 
-    with (patch("pathlib.Path.open", m),
-          ):
+    with (patch("pathlib.Path.open", m),):
         engine = RulesEngine(mock_fact_provider, builtin_rules=[], toml_rules_path=_path)
         loaded_rules = engine.get_rules()
 
@@ -80,7 +81,9 @@ source = "process"
 
 
 def test_filter_rules_by_id_and_name(sample_rule, mock_fact_provider):
-    engine = RulesEngine(mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"))
+    engine = RulesEngine(
+        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null")
+    )
 
     filtered = engine.match_rules(engine.rules, [sample_rule.id])
     assert sample_rule.id in filtered
@@ -96,6 +99,8 @@ def test_filter_rules_by_id_and_name(sample_rule, mock_fact_provider):
 
 
 def test_filter_rules_no_filters_returns_all(sample_rule, mock_fact_provider):
-    engine = RulesEngine(mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"))
+    engine = RulesEngine(
+        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null")
+    )
     filtered = engine.match_rules(engine.rules, None)
     assert filtered == engine.rules

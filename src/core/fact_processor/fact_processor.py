@@ -13,11 +13,14 @@ from shared.utils.resolve_path import resolve_path
 # FIXME: figure out if strict is something we want to keep
 # If so, add as parameter to function and fix tests
 # If no, remove from function and fix tests
-strict = cfg.get('strict')
+strict = cfg.get("strict")
+
 
 class FactProcessor:
     def __init__(self, fact_registry: FactRegistry | None = None) -> None:
-        self._all_facts: dict[str, FactSpec] | None = fact_registry.all_facts() if fact_registry else None
+        self._all_facts: dict[str, FactSpec] | None = (
+            fact_registry.all_facts() if fact_registry else None
+        )
 
     def get_all_facts(self) -> dict[str, FactSpec]:
         """
@@ -49,11 +52,9 @@ class FactProcessor:
                 if fact.source == SourceEnum(source):
                     returndict[fact.path] = fact
             except ValueError as err:
-                msg = f'Error getting fact for {source}: {err}'
+                msg = f"Error getting fact for {source}: {err}"
                 logger.warning(msg)
         return returndict
-
-
 
     def parse_facts(self, snapshots: dict[str, list[object | dict]]) -> dict[str, dict[str, Any]]:
         """
@@ -70,7 +71,7 @@ class FactProcessor:
         """
         factsheets = {}
         for src, snapshots in snapshots.items():
-            #TODO: Limited to one snapshot per source
+            # TODO: Limited to one snapshot per source
             # Unsure if worth it to implement multi snapshot per source for multiple processes.
             # Disregard for now
             # 12/26/2025
@@ -83,10 +84,9 @@ class FactProcessor:
                         factsheets[src][fact.path] = resolve_path(snapshot, fact.path)
 
                     except ValueError as err:
-                        msg = f'{fact.path} is not a valid path for {type(snapshot).__name__}'
+                        msg = f"{fact.path} is not a valid path for {type(snapshot).__name__}"
                         logger.warning(msg)
                         if strict:
                             raise FactNotFoundException(msg) from err
 
         return factsheets
-

@@ -19,8 +19,6 @@ def resolve_path(obj: Any, path: str) -> Any:
             try:
                 current = getattr(current, part)
             except AttributeError as e:
-                raise ValueError(
-                    f"Cannot resolve {path}: missing attribute '{part}'"
-                ) from e
+                raise ValueError(f"Cannot resolve {path}: missing attribute '{part}'") from e
 
     return current

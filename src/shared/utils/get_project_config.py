@@ -16,7 +16,7 @@ class ConfigManager:
         try:
             return self._config[key]
         except KeyError as err:
-            msg = f'{key} not found in config'
+            msg = f"{key} not found in config"
             raise InvalidProjectConfigurationError(msg) from err
 
     def get_config(self, fp: Path = None) -> dict:
@@ -24,11 +24,11 @@ class ConfigManager:
             if fp is None:
                 fp = Path("config/project_config.toml")
 
-            with open(fp, 'rb') as f:
-                raw_data = tomllib.load(f).get('project_config', {})
+            with open(fp, "rb") as f:
+                raw_data = tomllib.load(f).get("project_config", {})
 
             self._config = {k: (None if v == "None" else v) for k, v in raw_data.items()}
-            self._config.setdefault('os', platform.system())
+            self._config.setdefault("os", platform.system())
             self._loaded = True
 
         return self._config

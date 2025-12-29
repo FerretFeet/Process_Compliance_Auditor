@@ -19,6 +19,7 @@ rule3 = RuleBuilder.define("flagged_or_vip", "Flagged users or VIP in allowed re
     .then(lambda facts: print(f"Action for {facts['user_id']}"))  # inline action + complex group
 
 """
+
 from typing import Callable
 
 from core.rules_engine.model.condition import Expression
@@ -40,6 +41,7 @@ class RuleBuilder:
         .then(action)
     )
     """
+
     def __init__(self):
         self._priority = 0
         self._name = None
@@ -125,7 +127,7 @@ class RuleBuilder:
         if self._name is None:
             raise ValueError("Rule has no name")
         if callable(action):
-            action = Action(name='Inline', execute=action)
+            action = Action(name="Inline", execute=action)
         return Rule(
             name=self._name,
             description=self._description,
@@ -136,5 +138,5 @@ class RuleBuilder:
             mutually_exclusive_group=self._mutually_exclusive_group,
             enabled=self._enabled,
             priority=self._priority,
-            metadata=self._metadata
+            metadata=self._metadata,
         )

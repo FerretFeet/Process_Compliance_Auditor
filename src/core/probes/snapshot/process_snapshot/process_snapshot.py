@@ -17,6 +17,7 @@ def _safe(callable_attr, default=None):
     except Exception:
         return default
 
+
 @dataclass(kw_only=True)
 class ProcessSnapshot(BaseSnapshot):
     pid: int
@@ -64,10 +65,9 @@ class ProcessSnapshot(BaseSnapshot):
         # We use 'cls' so that if you subclass this,
         # it creates the correct child type.
         return cls(
-            pid=proc.pid,
-            name=_safe(proc.name, "unknown"),
-            create_time=_safe(proc.create_time, 0.0)
+            pid=proc.pid, name=_safe(proc.name, "unknown"), create_time=_safe(proc.create_time, 0.0)
         )
+
 
 @dataclass
 class CpuSnapshot:
@@ -75,6 +75,7 @@ class CpuSnapshot:
     times: Any
     affinity: list[int] | None
     cpu_num: int | None
+
 
 @dataclass
 class MemorySnapshot:

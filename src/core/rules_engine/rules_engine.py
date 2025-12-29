@@ -6,13 +6,18 @@ from typing import Callable, Mapping, Optional
 
 from core.rules_engine.model.condition import Expression, Condition, NotCondition, ConditionSet
 from shared._common.facts import FactSpecProtocol
-from shared.custom_exceptions import RuleWithNoAvailableFactException, InvalidRuleDataError, InvalidRuleFilterException
+from shared.custom_exceptions import (
+    RuleWithNoAvailableFactException,
+    InvalidRuleDataError,
+    InvalidRuleFilterException,
+)
 from core.rules_engine.builtin_rules import ALL_BUILTIN_RULES
 from core.rules_engine.model import Rule
 from shared.services import logger
 from shared.utils import project_root, cfg
 
 FactCheck = Callable[[dict], bool]
+
 
 @dataclass
 class FailEvent:
@@ -28,16 +33,21 @@ class FailEvent:
 
 FactProvider = Callable[[], Mapping[str, FactSpecProtocol]]
 
-_rules_file_path = project_root / cfg.get('rules_path')
+_rules_file_path = project_root / cfg.get("rules_path")
 
 _builtin_rules = ALL_BUILTIN_RULES
 
+
 class RulesEngine:
     """Control Access and Understanding of Rules."""
-    def __init__(self, fact_provider: FactProvider, *,
-                 toml_rules_path: pathlib.Path = _rules_file_path,
-                 builtin_rules: list[Rule] = _builtin_rules
-                 ) -> None:
+
+    def __init__(
+        self,
+        fact_provider: FactProvider,
+        *,
+        toml_rules_path: pathlib.Path = _rules_file_path,
+        builtin_rules: list[Rule] = _builtin_rules,
+    ) -> None:
         self.fact_provider = fact_provider
         self.builtin_rules = builtin_rules or []
         self.toml_rules_path = toml_rules_path
@@ -47,7 +57,6 @@ class RulesEngine:
 
         self.validate_rules()
 
-
     def get_rules(self) -> dict[str, Rule]:
         """Return all rules defined in project.toml.
 
@@ -55,8 +64,7 @@ class RulesEngine:
         """
         if self.rules is None:
             rules = self._load_rules_from_toml(self.toml_rules_path) or []
-            self.rules = {rule.id: rule
-                    for rule in rules + self.builtin_rules}
+            self.rules = {rule.id: rule for rule in rules + self.builtin_rules}
         return self.rules
 
     def validate_rules(self):
@@ -88,18 +96,16 @@ class RulesEngine:
             for msg, _ in errors:
                 logger.warning(msg)
 
-            raise RuleWithNoAvailableFactException(
-                "\n".join(rule.name for _, rule in errors)
-            )
+            raise RuleWithNoAvailableFactException("\n".join(rule.name for _, rule in errors))
 
         self.rules = valids
 
     def _validate_expression(
-            self,
-            expr: Expression,
-            available_facts: dict[str, FactSpecProtocol],
-            rule,
-            errors: list,
+        self,
+        expr: Expression,
+        available_facts: dict[str, FactSpecProtocol],
+        rule,
+        errors: list,
     ) -> None:
         """
         Recursively validate a rule Expression.
@@ -128,7 +134,9 @@ class RulesEngine:
 
             if fact.allowed_values and expr.value not in fact.allowed_values:
                 failed = True
-                msg += f"Condition value mismatch. Expected {fact.allowed_values}, got {expr.value}. "
+                msg += (
+                    f"Condition value mismatch. Expected {fact.allowed_values}, got {expr.value}. "
+                )
 
             if failed:
                 errors.append((msg, rule))
@@ -153,12 +161,12 @@ class RulesEngine:
 
         Returns all rules defined in project.toml.
         """
-        print(f'rules_path: {rules_path}')
+        print(f"rules_path: {rules_path}")
         if not rules_path.exists():
             rules_path.parent.mkdir(parents=True, exist_ok=True)
             rules_path.touch()
-        with rules_path.open('rb') as f:
-            uf_rules = tomllib.load(f).get('rules', [])
+        with rules_path.open("rb") as f:
+            uf_rules = tomllib.load(f).get("rules", [])
         if not isinstance(uf_rules, list):
             raise InvalidRuleDataError("Expected 'rules' to be a list of tables in TOML")
         rules = []
@@ -169,10 +177,7 @@ class RulesEngine:
                 logger.warning(f"Skipping invalid rule_builder: {e}")
         return rules
 
-
-
-    def match_rules(self, rules: dict[str, Rule], filters: Optional[list[str]])\
-            -> dict[str, Rule]:
+    def match_rules(self, rules: dict[str, Rule], filters: Optional[list[str]]) -> dict[str, Rule]:
         """Return only the rules matching the given filters.
 
         Args:
@@ -239,7 +244,6 @@ class RulesEngine:
     #
     #         final_result.append({facts.get('pid'): result_set})
     #     return final_result
-
 
 
 if __name__ == "__main__":

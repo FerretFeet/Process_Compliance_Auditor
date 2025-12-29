@@ -12,7 +12,6 @@ from core.rules_engine.rule_builder.rule_builder import RuleBuilder
 from tests.fixtures.fake_fact_registry import fake_fact_registry
 
 
-
 class TestRuleBuilderBase:
     def setup_method(self):
         self.adult = Condition("age", Operator.GTE, "18")
@@ -22,7 +21,6 @@ class TestRuleBuilderBase:
 
         self.grant_access = Action("grant_access", lambda facts: facts.update({"access": True}))
         self.block_access = Action("block_access", lambda facts: facts.update({"access": False}))
-
 
 
 class TestCondParsing(TestRuleBuilderBase):
@@ -40,9 +38,12 @@ class TestCondParsing(TestRuleBuilderBase):
         assert c.value == 100
 
     def test_inline_nested_condition(self, fake_fact_registry):
-        rule = (RuleBuilder().define('test', 'test_check')
-                .when(cond('nested.key > 1'))
-                .then(self.grant_access))
+        rule = (
+            RuleBuilder()
+            .define("test", "test_check")
+            .when(cond("nested.key > 1"))
+            .then(self.grant_access)
+        )
         facts = {"nested": {"key": 2}}
         assert isinstance(rule.condition.field, FieldRef)
         assert rule.condition.field.evaluate(facts) == "2"
@@ -50,6 +51,7 @@ class TestCondParsing(TestRuleBuilderBase):
     def test_cond_parsing_invalid_raises(self):
         with pytest.raises(ValueError):
             cond("invalid expression")
+
 
 class TestRuleBuilderChaining(TestRuleBuilderBase):
 
@@ -96,7 +98,10 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
             .then(self.grant_access)
         )
         assert isinstance(rule.condition, ConditionSet)
-        assert rule.condition.group_operator == ConditionSet.all(self.adult, any_of(self.premium, self.vip)).group_operator
+        assert (
+            rule.condition.group_operator
+            == ConditionSet.all(self.adult, any_of(self.premium, self.vip)).group_operator
+        )
         facts = {}
         rule.action(facts)
         assert facts["access"] is True
@@ -152,13 +157,15 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
     def test_not_condition_in_rulebuilder(self):
         """Ensure that RuleBuilder can accept NotCondition via not_() helper."""
         rule = (
-            RuleBuilder().define("negate_age", "User must NOT be adult")
+            RuleBuilder()
+            .define("negate_age", "User must NOT be adult")
             .when(not_(self.adult))
             .then(self.grant_access)
         )
 
         # The model should be a NotCondition wrapping the original Condition
         from core.rules_engine.model.condition import NotCondition, Condition
+
         assert isinstance(rule.condition, NotCondition)
         assert isinstance(rule.condition.condition, Condition)
         assert rule.condition.condition == self.adult
@@ -169,7 +176,8 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
     def test_complex_not_chaining(self):
         """Test RuleBuilder with complex combinations of NotCondition, AND/OR, and nested groups."""
         rule = (
-            RuleBuilder().define("complex_not_rule", "Adult NOT VIP in allowed regions")
+            RuleBuilder()
+            .define("complex_not_rule", "Adult NOT VIP in allowed regions")
             .when(self.adult)
             .and_(not_(self.vip))
             .and_(self.region_allowed)
@@ -201,6 +209,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
 # Dummy model and action for testing
 adult = Condition("age", Operator.GTE, "18")
 grant_access = Action(name="grant", execute=lambda facts: None)
+
 
 class TestRuleBuilderGroups:
     def test_group_assignment(self):
@@ -238,10 +247,10 @@ class TestRuleBuilderGroups:
         assert rule.mutually_exclusive_group == "access_level"
 
 
-
 # Dummy objects for testing
 adult = Condition("age", Operator.GTE, "18")
 grant_access = Action(name="grant", execute=lambda facts: None)
+
 
 class TestRuleBuilderAllAttributesDynamic:
     def test_all_rule_fields_exposed_in_builder(self):
@@ -249,20 +258,18 @@ class TestRuleBuilderAllAttributesDynamic:
         Ensure all Rule attributes (except explicitly ignored) are set via the builder.
         Fails if a model is None or left at its default value.
         """
-        ignored_fields = [
-            "id"
-        ]
+        ignored_fields = ["id"]
 
         rule = (
             RuleBuilder()
             .define("test_rule_dynamic", "Testing full attribute coverage")
-            .source('process')
+            .source("process")
             .when(adult)
             .group("membership")
             .mutually_exclusive_group("access_level")
             .disable()
             .priority(4)
-            .set_metadata({'ex': 'val'})
+            .set_metadata({"ex": "val"})
             .then(grant_access)
         )
 

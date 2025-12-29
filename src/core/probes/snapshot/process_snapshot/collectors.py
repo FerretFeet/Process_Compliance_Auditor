@@ -1,18 +1,26 @@
 # collectors.py
 import psutil
 
-from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe, MemorySnapshot, CpuSnapshot
+from core.probes.snapshot.process_snapshot.process_snapshot import (
+    ProcessSnapshot,
+    _safe,
+    MemorySnapshot,
+    CpuSnapshot,
+)
 
 
 def collect_identity(proc: psutil.Process, snap: ProcessSnapshot):
-    snap.identity.update({
-        "ppid": proc.ppid(),
-        "exe": _safe(proc.exe),
-        "cmdline": _safe(proc.cmdline, []),
-        "cwd": _safe(proc.cwd),
-        "username": _safe(proc.username),
-        "status": _safe(proc.status),
-    })
+    snap.identity.update(
+        {
+            "ppid": proc.ppid(),
+            "exe": _safe(proc.exe),
+            "cmdline": _safe(proc.cmdline, []),
+            "cwd": _safe(proc.cwd),
+            "username": _safe(proc.username),
+            "status": _safe(proc.status),
+        }
+    )
+
 
 def collect_cpu(proc: psutil.Process, snap: ProcessSnapshot):
     snap.cpu = CpuSnapshot(
@@ -22,6 +30,7 @@ def collect_cpu(proc: psutil.Process, snap: ProcessSnapshot):
         cpu_num=_safe(proc.cpu_num),
     )
 
+
 def collect_memory(proc: psutil.Process, snap: ProcessSnapshot):
     snap.memory = MemorySnapshot(
         percent=_safe(proc.memory_percent),
@@ -30,11 +39,15 @@ def collect_memory(proc: psutil.Process, snap: ProcessSnapshot):
         maps=_safe(proc.memory_maps),
     )
 
+
 def collect_relationships(proc: psutil.Process, snap: ProcessSnapshot):
-    snap.relationships.update({
-        "parents": [p.pid for p in _safe(proc.parents, [])],
-        "children": [c.pid for c in _safe(proc.children, [])],
-    })
+    snap.relationships.update(
+        {
+            "parents": [p.pid for p in _safe(proc.parents, [])],
+            "children": [c.pid for c in _safe(proc.children, [])],
+        }
+    )
+
 
 DEFAULT_COLLECTORS = [
     collect_identity,

@@ -38,9 +38,7 @@ class TestGetFactsBySource:
     def test_get_facts_by_sources_filters_empty(self, processor):
         processor.get_all_facts()
 
-        result = processor.get_facts_by_sources(
-            [SourceEnum.PROCESS.value, "missing"]
-        )
+        result = processor.get_facts_by_sources([SourceEnum.PROCESS.value, "missing"])
 
         assert SourceEnum.PROCESS.value in result
         assert "missing" not in result
@@ -76,11 +74,7 @@ class TestParseFacts:
             False,
         )
 
-        snapshots = {
-            SourceEnum.PROCESS.value: [
-                {"missing": 25}
-            ]
-        }
+        snapshots = {SourceEnum.PROCESS.value: [{"missing": 25}]}
 
         result = processor.parse_facts(snapshots)
 
@@ -95,11 +89,7 @@ class TestParseFacts:
             True,
         )
 
-        snapshots = {
-            SourceEnum.PROCESS.value: [
-                {"age": 25}
-            ]
-        }
+        snapshots = {SourceEnum.PROCESS.value: [{"age": 25}]}
 
         with pytest.raises(FactNotFoundException):
             processor.parse_facts(snapshots)
@@ -114,11 +104,6 @@ class TestLogging:
             False,
         )
 
-
-        snapshots = {
-            SourceEnum.PROCESS.value: [
-                {"age": 40}
-            ]
-        }
+        snapshots = {SourceEnum.PROCESS.value: [{"age": 40}]}
 
         processor.parse_facts(snapshots)

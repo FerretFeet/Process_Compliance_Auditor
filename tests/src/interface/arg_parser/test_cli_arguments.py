@@ -3,24 +3,22 @@ import pytest
 from interface.arg_parser.cli_arguments import _CliArgument, CliArguments, MutExGroup
 from shared.custom_exceptions import InvalidCLI_ParserConfigurationError
 
+
 class TestCliArgumentDataclass:
     def test_get_flags_with_str(self):
         arg = _CliArgument(name_or_flags="pid", type=int, help="Test PID")
         assert arg.get_flags() == ("pid",)
 
     def test_get_flags_with_tuple(self):
-        arg = _CliArgument(name_or_flags=("-c", "--create-process"), type=str, help="Create process")
+        arg = _CliArgument(
+            name_or_flags=("-c", "--create-process"), type=str, help="Create process"
+        )
         assert arg.get_flags() == ("-c", "--create-process")
 
     def test_to_kwargs_with_optional_args(self):
         arg = _CliArgument(name_or_flags="pid", type=int, help="Test PID", nargs="?", default=5)
         kwargs = arg.to_kwargs()
-        assert kwargs == {
-            "type": int,
-            "help": "Test PID",
-            "nargs": "?",
-            "default": 5
-        }
+        assert kwargs == {"type": int, "help": "Test PID", "nargs": "?", "default": 5}
 
     def test_to_kwargs_without_optional_args(self):
         arg = _CliArgument(name_or_flags="pid", type=int, help="Test PID")

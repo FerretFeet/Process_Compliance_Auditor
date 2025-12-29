@@ -111,5 +111,3 @@ class TestNotCondition:
         assert isinstance(double_not, Condition)
         assert double_not == adult
         assert double_not.describe() == adult.describe()
-
-

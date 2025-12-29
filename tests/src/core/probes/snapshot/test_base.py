@@ -11,6 +11,7 @@ from shared.utils.resolve_path import resolve_path
 
 # --- Concrete Implementation for Testing ---
 
+
 @dataclass
 class MockSnapshot(BaseSnapshot):
     data: str = ""
@@ -21,6 +22,7 @@ class MockSnapshot(BaseSnapshot):
 
 
 # --- Tests ---
+
 
 class TestBaseSnapshot:
 
@@ -61,11 +63,9 @@ class TestBaseSnapshot:
     def test_subclass_must_implement_from_source(self):
         """Verify that a subclass without from_source cannot be instantiated."""
         with pytest.raises(TypeError):
+
             @dataclass
             class IncompleteSnapshot(BaseSnapshot):
                 pass
 
             IncompleteSnapshot()
-
-
-

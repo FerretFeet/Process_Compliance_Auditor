@@ -1,4 +1,5 @@
 """A tool to audit the behavior of apps and their compliance with defined security rules."""
+
 import time
 from dataclasses import dataclass
 from typing import Callable, Any
@@ -23,7 +24,8 @@ class RunCondition:
     process_num_active_caller: Callable[[], int]
 
     def is_active(self) -> bool:
-        if self.process_num_active_caller() == 0: return False
+        if self.process_num_active_caller() == 0:
+            return False
         if not self.time_limit:
             return True
         elif self.time_limit > time.monotonic() - self.start:
@@ -31,13 +33,17 @@ class RunCondition:
         return False
 
 
-
 class Main:
 
-    def __init__(self, rules_engine: RulesEngine, compliance_engine: ComplianceEngine,
-                 cli_context: CliContext, process_handler: ProcessHandler,
-                 snapshot_manager: SnapshotManager, fact_processor: FactProcessor,
-                 ):
+    def __init__(
+        self,
+        rules_engine: RulesEngine,
+        compliance_engine: ComplianceEngine,
+        cli_context: CliContext,
+        process_handler: ProcessHandler,
+        snapshot_manager: SnapshotManager,
+        fact_processor: FactProcessor,
+    ):
         self.rules_engine = rules_engine
         self.compliance_engine = compliance_engine
         self.cli_context = cli_context
@@ -49,16 +55,22 @@ class Main:
         self.run_condition = None
 
     def setup(self) -> None:
-        self.active_rules = self.rules_engine.match_rules(self.rules_engine.get_rules(), self.cli_context.rules)
+        self.active_rules = self.rules_engine.match_rules(
+            self.rules_engine.get_rules(), self.cli_context.rules
+        )
         self.process_handler.add_process(AuditedProcess(self.cli_context.process))
-        process_probes = [ProbeLibrary.process_probe(proc.process) for proc in self.process_handler.get_processes()]
+        process_probes = [
+            ProbeLibrary.process_probe(proc.process)
+            for proc in self.process_handler.get_processes()
+        ]
         self.snapshot_manager.add_probes(process_probes)
 
-        self.run_condition = RunCondition(time.monotonic(), self.cli_context.time_limit,
-                                          self.cli_context.interval, self.process_handler.num_active)
-
-
-
+        self.run_condition = RunCondition(
+            time.monotonic(),
+            self.cli_context.time_limit,
+            self.cli_context.interval,
+            self.process_handler.num_active,
+        )
 
     def main(self) -> int:
         """The main function.
@@ -78,15 +90,15 @@ class Main:
                 facts: dict[str, dict[str, Any]] = self.fact_processor.parse_facts(ps_output)
 
                 # TODO:
-                    # Fix code documentation: fully document all classes and functions to this point
-                    # Remove Strict from config or make as parameter to functions that use it
-                    # Fix logging so only log errors if not also raising exception, instead of both
-                    # Test fact processor package - create a fake process snapshot and put it into the expected format and try to parse
+                # Fix code documentation: fully document all classes and functions to this point
+                # Remove Strict from config or make as parameter to functions that use it
+                # Fix logging so only log errors if not also raising exception, instead of both
+                # Test fact processor package - create a fake process snapshot and put it into the expected format and try to parse
 
                 output = self.compliance_engine.run(self.active_rules, facts)
-                print(f'Main Loop Output::\n')
+                print(f"Main Loop Output::\n")
                 for k, v in output.items():
-                    print(f'\n{k}')
+                    print(f"\n{k}")
                     for val in v:
                         print(f"\n\t{val}")
 
@@ -94,10 +106,10 @@ class Main:
                 time.sleep(max(0, self.run_condition.interval - int(elapsed)))
 
         except KeyboardInterrupt:
-            #Do whatever i need to safely handle this
+            # Do whatever i need to safely handle this
             # allow multiple interrupts? Daemon mode?
-            logger.info(f'Keyboard Interrupt, Shutting down')
-        except (FactNotFoundException) as err:
+            logger.info(f"Keyboard Interrupt, Shutting down")
+        except FactNotFoundException as err:
             logger.error(err)
         finally:
             if self.cli_context.create_process_flag:
@@ -128,5 +140,3 @@ if __name__ == "__main__":
         fact_processor=fact_processor,
     )
     main.main()
-
-

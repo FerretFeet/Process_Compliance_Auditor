@@ -13,6 +13,7 @@ from shared.services import logger
 
 class AuditedProcess:
     """Container for a psutil Process Instance."""
+
     def __init__(self, pid_or_command: list[str] | int):
         """
         Initialize the AuditedProcess.
@@ -87,9 +88,7 @@ class AuditedProcess:
                 return True
             except psutil.TimeoutExpired:
                 if not force:
-                    logger.warning(
-                        f"Process {self.pid} did not exit within {timeout}s"
-                    )
+                    logger.warning(f"Process {self.pid} did not exit within {timeout}s")
                     return False
 
             # Phase 2: forced termination
@@ -101,8 +100,15 @@ class AuditedProcess:
         except psutil.NoSuchProcess:
             return True
 
-    def _kill_proc_tree(self, pid, *, sig: signal.Signals =signal.SIGTERM, include_parent: bool=True,
-                       timeout:float=None, on_terminate:Callable[[psutil.Process], object | None]=None):
+    def _kill_proc_tree(
+        self,
+        pid,
+        *,
+        sig: signal.Signals = signal.SIGTERM,
+        include_parent: bool = True,
+        timeout: float = None,
+        on_terminate: Callable[[psutil.Process], object | None] = None,
+    ):
         """Kill a process tree (including grandchildren) with signal
         "sig" and return a (gone, still_alive) tuple.
         "on_terminate", if specified, is a callback function which is
@@ -120,10 +126,8 @@ class AuditedProcess:
                 p.send_signal(sig)
             except psutil.NoSuchProcess:
                 pass
-        gone, alive = psutil.wait_procs(children, timeout=timeout,
-                                        callback=on_terminate)
+        gone, alive = psutil.wait_procs(children, timeout=timeout, callback=on_terminate)
         return gone, alive
-
 
     def ____snapshot(self, collectors=None) -> ProcessSnapshot | None:
         proc = self.process

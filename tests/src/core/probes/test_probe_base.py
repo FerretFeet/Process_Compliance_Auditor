@@ -28,7 +28,7 @@ class TestGenericProbe:
             name="test-probe",
             source=mock_source,
             extractor=mock_extractor,
-            initializer=mock_initializer
+            initializer=mock_initializer,
         )
 
         mock_initializer.assert_called_once_with(mock_source)
@@ -44,10 +44,7 @@ class TestGenericProbe:
         mock_extractor.apply.return_value = final_snapshot
 
         probe = GenericProbe(
-            name="test-probe",
-            source=mock_source,
-            extractor=mock_extractor,
-            initializer=initializer
+            name="test-probe", source=mock_source, extractor=mock_extractor, initializer=initializer
         )
 
         result = probe.collect()

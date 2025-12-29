@@ -7,8 +7,9 @@ from core.probes.snapshot.process_snapshot.collectors import DEFAULT_COLLECTORS
 from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe
 from core.probes.snapshot.snapshot_extractor import SnapshotExtractor
 
+
 class Source_Enum(Enum):
-    PROCESS = 'process'
+    PROCESS = "process"
 
 
 class ProbeLibrary:
@@ -24,7 +25,7 @@ class ProbeLibrary:
             name=Source_Enum.PROCESS.value,
             source=proc,
             extractor=extractor,
-            initializer=ProcessSnapshot.from_source
+            initializer=ProcessSnapshot.from_source,
         )
 
     # @staticmethod

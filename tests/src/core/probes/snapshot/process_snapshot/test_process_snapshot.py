@@ -2,7 +2,12 @@ import pytest
 from unittest.mock import MagicMock, patch
 import psutil
 import time
-from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe, CpuSnapshot, MemorySnapshot
+from core.probes.snapshot.process_snapshot.process_snapshot import (
+    ProcessSnapshot,
+    _safe,
+    CpuSnapshot,
+    MemorySnapshot,
+)
 
 
 class TestSafeHelper:
@@ -24,8 +29,6 @@ class TestSafeHelper:
 
 
 class TestProcessSnapshot:
-
-
 
     def test_from_source_creation(self, mock_proc):
         """Verify from_source correctly maps psutil attributes."""
@@ -63,12 +66,7 @@ class TestProcessSnapshot:
 
     def test_as_dict_merging(self):
         """Verify as_dict flattens extensions into the result."""
-        snapshot = ProcessSnapshot(
-            pid=500,
-            name="app",
-            create_time=0.0,
-            snapshot_time=100.0
-        )
+        snapshot = ProcessSnapshot(pid=500, name="app", create_time=0.0, snapshot_time=100.0)
         snapshot.add("custom_key", "custom_val")
 
         result = snapshot.as_dict()

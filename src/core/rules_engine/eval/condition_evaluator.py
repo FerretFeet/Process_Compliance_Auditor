@@ -42,6 +42,7 @@ class ConditionEvaluator:
             return any(results)
 
         raise ValueError(f"Unsupported GroupOperator: {condition_set.group_operator}")
+
     @staticmethod
     def apply_operator(operator: Operator, left: Any, right: Any) -> bool:
         """

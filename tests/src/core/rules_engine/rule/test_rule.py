@@ -20,9 +20,7 @@ class TestActionBase:
             facts["executed"] = True
 
         self.action = Action(
-            name="SampleAction",
-            execute=sample_execute,
-            description="A test action"
+            name="SampleAction", execute=sample_execute, description="A test action"
         )
         self.facts = {}
 
@@ -39,7 +37,6 @@ class TestActionBase:
 
 class TestRule(TestActionBase):
 
-
     def setup_method(self):
         super().setup_method()
         self.cond1 = Condition("x", Operator.EQ, "10")
@@ -51,9 +48,8 @@ class TestRule(TestActionBase):
             description="A sample rule_builder",
             condition=self.condition_set,
             action=self.action,
-            source=[SourceEnum.PROCESS]
+            source=[SourceEnum.PROCESS],
         )
-
 
     def test_raises_strict_and_missing_fact(self):
         cfg.override("strict", True)
@@ -63,11 +59,12 @@ class TestRule(TestActionBase):
             "group": "builtin",
             "model": "unavailable >= test",
             "action": "Block access",
-            "source": "process"
-
+            "source": "process",
         }
-        with pytest.raises(ValueError,
-                           match=r"Could not find field '[a-zA-Z]+' for expression '.+' in fact registry\."):
+        with pytest.raises(
+            ValueError,
+            match=r"Could not find field '[a-zA-Z]+' for expression '.+' in fact registry\.",
+        ):
             rule = Rule.from_toml(toml_data)
 
     def test_raises_value_cast_mismatch(self, fake_fact_registry):
@@ -78,17 +75,18 @@ class TestRule(TestActionBase):
             "group": "builtin",
             "model": "age >= 18:str",
             "action": "Block access",
-            "source": "process"
+            "source": "process",
         }
-        with pytest.raises(ValueError,
-                           match=r"Declared type '[a-zA-Z]+' does not match fact registry type '.+' for '.+'\."):
+        with pytest.raises(
+            ValueError,
+            match=r"Declared type '[a-zA-Z]+' does not match fact registry type '.+' for '.+'\.",
+        ):
             rule = Rule.from_toml(toml_data)
 
-
-
-
     def test_rule_attributes(self):
-        assert self.rule.id == "RUL-007195", "Rule id is not equal to RUL-007195, Hash function has changed."
+        assert (
+            self.rule.id == "RUL-007195"
+        ), "Rule id is not equal to RUL-007195, Hash function has changed."
         assert self.rule.description == "A sample rule_builder"
         assert self.rule.name == "TestRule"
         assert self.rule.description == "A sample rule_builder"
@@ -107,7 +105,7 @@ class TestRule(TestActionBase):
             description="Rule with nested model sets",
             condition=nested_cond,
             action=self.action,
-            source=[SourceEnum.PROCESS]
+            source=[SourceEnum.PROCESS],
         )
         assert isinstance(rule_nested.condition, ConditionSet)
         assert len(rule_nested.condition.conditions) == 3
@@ -119,7 +117,7 @@ class TestRule(TestActionBase):
             "group": "builtin",
             "model": "age >= 18",
             "action": "Block access",
-            "source": "process"
+            "source": "process",
         }
 
         rule = Rule.from_toml(toml_data)
@@ -147,16 +145,12 @@ class TestRule(TestActionBase):
                     "age >= 18",
                     {
                         "operator": "any",
-                        "conditions": [
-                            "membership == 'premium'",
-                            "membership == 'vip'"
-                        ]
-                    }
-                ]
+                        "conditions": ["membership == 'premium'", "membership == 'vip'"],
+                    },
+                ],
             },
             "action": lambda facts: facts.update({"access_granted": True}),
-            "source": "process"
-
+            "source": "process",
         }
 
         rule = Rule.from_toml(toml_data)
@@ -193,7 +187,7 @@ class TestRule(TestActionBase):
             "description": "Missing model",
             "group": "user",
             # model is missing
-            "action": "Log something"
+            "action": "Log something",
         }
 
         with pytest.raises(Exception):

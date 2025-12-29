@@ -57,7 +57,9 @@ def cond(expr: str) -> Condition:
                 field_fact = FactRegistry.get_fact(field_str)
                 fact_type = field_fact.type
             except KeyError:
-                msg = f"Could not find field '{field_str}' for expression '{expr}' in fact registry."
+                msg = (
+                    f"Could not find field '{field_str}' for expression '{expr}' in fact registry."
+                )
                 logger.warning(msg)
                 if _strict is True:
                     raise ValueError(msg)

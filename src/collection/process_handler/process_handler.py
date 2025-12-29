@@ -1,10 +1,10 @@
-
 from collection.process_handler.audited_process import AuditedProcess
 from shared.services import logger
 
 
 class ProcessHandler:
     """Manages processes."""
+
     def __init__(self):
         """Initialise the ProcessHandler."""
         self._processes: list[AuditedProcess] = []
@@ -46,7 +46,6 @@ class ProcessHandler:
                 process.shutdown()
             except Exception as e:
                 logger.warning(f"Failed to shutdown process {process}: {e}")
-
 
     def remove_all(self) -> None:
         self._processes = []
