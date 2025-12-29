@@ -1,19 +1,22 @@
-from typing import Generic, TypeVar, Callable
+from typing import TYPE_CHECKING, TypeVar
 
-from core.probes.snapshot.snapshot_extractor import SnapshotExtractor
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from core.probes.snapshot.snapshot_extractor import SnapshotExtractor
 
 S = TypeVar("S")  # Snapshot Type
 R = TypeVar("R")  # Raw Source Type (e.g., psutil.Process)
 
 
-class GenericProbe(Generic[S, R]):
+class GenericProbe[S, R]:
     def __init__(
         self,
         name: str,
         source: R,
         extractor: SnapshotExtractor[S, R],
         initializer: Callable[[R], S],
-    ):
+    ) -> None:
         self.name = name
         self._source = source
         self._extractor = extractor
@@ -21,6 +24,6 @@ class GenericProbe(Generic[S, R]):
         self._initializer(self._source)
 
     def collect(self) -> S:
-        """Return a dataclass of probed data"""
+        """Return a dataclass of probed data."""
         base_snap = self._initializer(self._source)
         return self._extractor.apply(self._source, base_snap)

@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from core.fact_processor.fact_registry import FactRegistry
-from core.rules_engine.model.rule import Rule, Action, SourceEnum
+from core.rules_engine.model.rule import Action, Rule, SourceEnum
 from main import Main
 from shared._common.operators import Operator
 
@@ -27,7 +28,7 @@ class TestMainE2E:
         # SnapshotManager returns realistic snapshots
         self.fake_snapshot_manager = MagicMock()
         self.fake_snapshot_manager.get_all_snapshots.return_value = {
-            "process": [FakeSnapshot({"age": 42})]
+            "process": [FakeSnapshot({"age": 42})],
         }
 
         # FactProcessor converts snapshots into dicts
@@ -85,7 +86,7 @@ class TestMainE2E:
         # Assertions
         assert result == 0
         self.fake_fact_processor.parse_facts.assert_called_once_with(
-            self.fake_snapshot_manager.get_all_snapshots()
+            self.fake_snapshot_manager.get_all_snapshots(),
         )
         self.fake_compliance_engine.run.assert_called_once()
         self.fake_process_handler.add_process.assert_called_once_with(mock_proc)
@@ -98,13 +99,13 @@ class TestMainE2E:
         mock_proc = MagicMock()
         MockProcess.return_value = mock_proc
 
-        from core.fact_processor.fact_processor import FactProcessor
         from core.compliance_engine import ComplianceEngine
+        from core.fact_processor.fact_processor import FactProcessor
 
         # Real FactProcessor
         fact_registry = FactRegistry()
         fact_registry.register_raw(
-            path="age", type_=int, source=SourceEnum.PROCESS, allowed_operators=set(Operator)
+            path="age", type_=int, source=SourceEnum.PROCESS, allowed_operators=set(Operator),
         )
 
         fact_processor = FactProcessor(fact_registry)
@@ -122,7 +123,7 @@ class TestMainE2E:
 
         fake_snapshot_manager = MagicMock()
         fake_snapshot_manager.get_all_snapshots.return_value = {
-            "process": [SimpleSnapshot(snapshot_data)]
+            "process": [SimpleSnapshot(snapshot_data)],
         }
 
         # Create a simple Rule that matches the snapshot

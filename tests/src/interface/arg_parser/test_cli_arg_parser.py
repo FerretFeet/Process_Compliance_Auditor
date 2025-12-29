@@ -1,5 +1,7 @@
-import pytest
 import sys
+
+import pytest
+
 from interface.arg_parser import CLI_ArgParser
 
 

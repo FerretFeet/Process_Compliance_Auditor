@@ -1,5 +1,7 @@
-from typing import Any
-from collection.process_handler import ProcessSnapshot
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collection.process_handler import ProcessSnapshot
 
 
 class FactSheet:
@@ -8,7 +10,7 @@ class FactSheet:
     This normalizes and flattens data for rule_builder evaluation.
     """
 
-    def __init__(self, snapshot: ProcessSnapshot):
+    def __init__(self, snapshot: ProcessSnapshot) -> None:
         self.snapshot = snapshot
         self.facts = self._extract_facts(snapshot)
 

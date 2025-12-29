@@ -18,7 +18,8 @@ class FieldRef:
             try:
                 value = self.type(value)
             except ValueError:
+                msg = f"Expected {self.path} to be {self.type}, got {type(value)}.  Attempted Cast Failed."
                 raise TypeError(
-                    f"Expected {self.path} to be {self.type}, got {type(value)}.  Attempted Cast Failed."
+                    msg,
                 )
         return value

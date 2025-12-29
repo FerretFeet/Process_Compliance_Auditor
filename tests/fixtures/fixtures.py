@@ -4,7 +4,7 @@ import psutil
 import pytest
 
 from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot
-from core.rules_engine.model import Rule, Action
+from core.rules_engine.model import Action, Rule
 from core.rules_engine.model.condition import Condition
 from core.rules_engine.model.field import FieldRef
 from core.rules_engine.model.rule import SourceEnum
@@ -38,8 +38,8 @@ def toml_data(sample_rule):
                 "model": sample_rule.condition.describe(),
                 "action": lambda facts: facts.update({"access_granted": True}),
                 "source": "process",
-            }
-        ]
+            },
+        ],
     }
 
 

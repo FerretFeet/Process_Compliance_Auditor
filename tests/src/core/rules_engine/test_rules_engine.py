@@ -1,19 +1,18 @@
 import pathlib
-from typing import Mapping
+from typing import TYPE_CHECKING
+from unittest.mock import mock_open, patch
 
 import pytest
-from unittest.mock import patch, mock_open
 
 from core.fact_processor.fact_registry import FactRegistry
-from core.rules_engine.model.field import FieldRef
-from core.rules_engine.model.condition import Condition
 from core.rules_engine.model import Operator
-from core.rules_engine.model.rule import Action, Rule, SourceEnum
-from core.rules_engine.rules_engine import RulesEngine, InvalidRuleFilterException, FactProvider
+from core.rules_engine.model.rule import SourceEnum
+from core.rules_engine.rules_engine import InvalidRuleFilterException, RulesEngine
 from shared._common.facts import FactSpecProtocol
 from shared.utils import cfg, project_root
-from tests.fixtures.fake_fact_registry import fake_fact_registry
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 FactRegistry.register_raw(
     "cpu_check",
@@ -41,7 +40,7 @@ def mock_fact_provider(fake_fact_registry):
 
 def test_builtin_rules_loaded(sample_rule, mock_fact_provider):
     engine = RulesEngine(
-        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null")
+        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"),
     )
     assert sample_rule.id in engine.rules
     assert engine.rules[sample_rule.id] == sample_rule
@@ -74,7 +73,7 @@ source = "process"
 
     # Validate that the rule is loaded
     assert len(loaded_rules) == 1
-    rule = list(loaded_rules.values())[0]
+    rule = next(iter(loaded_rules.values()))
     assert rule.name == "cpu_check"
     assert rule.description == "Count cpus"
     assert rule.group == "cpu"
@@ -82,7 +81,7 @@ source = "process"
 
 def test_filter_rules_by_id_and_name(sample_rule, mock_fact_provider):
     engine = RulesEngine(
-        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null")
+        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"),
     )
 
     filtered = engine.match_rules(engine.rules, [sample_rule.id])
@@ -100,7 +99,7 @@ def test_filter_rules_by_id_and_name(sample_rule, mock_fact_provider):
 
 def test_filter_rules_no_filters_returns_all(sample_rule, mock_fact_provider):
     engine = RulesEngine(
-        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null")
+        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"),
     )
     filtered = engine.match_rules(engine.rules, None)
     assert filtered == engine.rules

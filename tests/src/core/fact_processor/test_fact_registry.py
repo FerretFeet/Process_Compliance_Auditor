@@ -1,10 +1,10 @@
+
 import pytest
-from typing import Set
 
 from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model.rule import SourceEnum
-from shared._common.operators import Operator
 from shared._common.facts import FactSpec
+from shared._common.operators import Operator
 
 
 @pytest.fixture(autouse=True)

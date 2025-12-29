@@ -2,10 +2,13 @@
 
 import argparse
 from dataclasses import dataclass
-from typing import Callable, Any
+from typing import TYPE_CHECKING, Any
 
 from shared.custom_exceptions.custom_exception import InvalidCLI_ParserConfigurationError
 from shared.utils import cfg
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 default_interval = cfg.get("default_process_check_interval")
 default_time_limit = cfg.get("default_process_time_limit")
@@ -26,7 +29,7 @@ class _CliArgument:
     default: str = None
 
     def get_flags(self) -> tuple[str, ...]:
-        """Get the flags for this argument as a tuple"""
+        """Get the flags for this argument as a tuple."""
         return (self.name_or_flags,) if isinstance(self.name_or_flags, str) else self.name_or_flags
 
     def to_kwargs(self) -> dict[str, Any]:
@@ -85,12 +88,12 @@ class CliArguments:
             f" Default is {default_interval}.",
         ),
         _CliArgument(
-            name_or_flags=("-r", "--rules"), nargs="+", type=str, help="Rule names or ids to test."
+            name_or_flags=("-r", "--rules"), nargs="+", type=str, help="Rule names or ids to test.",
         ),
     )
 
     mutually_exclusive_groups: list[MutExGroup] = [
-        MutExGroup(["pid", "--create-process"], required=True)
+        MutExGroup(["pid", "--create-process"], required=True),
     ]
 
     @staticmethod
@@ -104,7 +107,7 @@ class CliArguments:
                 if flag in arg.name_or_flags:
                     return arg
             else:
-                msg = f"Expected arg.name_or_flags to be str or tuple/list/set"
+                msg = "Expected arg.name_or_flags to be str or tuple/list/set"
                 raise InvalidCLI_ParserConfigurationError(msg)
         msg = f"flag not found in cli arguments: {flag}"
         raise InvalidCLI_ParserConfigurationError(msg)

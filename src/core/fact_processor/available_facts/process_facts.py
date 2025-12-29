@@ -1,6 +1,6 @@
 from core.rules_engine.model.rule import SourceEnum
 from shared._common.facts import FactSpec
-from shared._common.operators import NUMERIC_OPS, BOOL_OPS, STRING_OPS, STRUCT_OPS, COLLECTION_OPS
+from shared._common.operators import BOOL_OPS, COLLECTION_OPS, NUMERIC_OPS, STRING_OPS, STRUCT_OPS
 
 PROCESS_FACTS = [
     FactSpec("pid", int, SourceEnum.PROCESS, "...", NUMERIC_OPS),

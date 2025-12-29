@@ -1,12 +1,15 @@
 """"""
 
 import hashlib
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Callable
+from typing import TYPE_CHECKING
 
-from core.rules_engine.model.condition import Expression
 from shared.custom_exceptions.custom_exception import InvalidRuleDataError
+
+if TYPE_CHECKING:
+    from core.rules_engine.model.condition import Expression
 
 
 class SourceEnum(Enum):
@@ -20,7 +23,7 @@ ActionType = Callable[[dict], None]
 class Action:
     name: str
     execute: ActionType
-    description: Optional[str] = None
+    description: str | None = None
 
     def __call__(self, facts: dict) -> None:
         self.execute(facts)
@@ -47,7 +50,7 @@ class Rule:
         """
         Generate a deterministic human-readable ID:
         - 3-character prefix derived from the group (or default "RUL")
-        - 6-digit numeric portion from SHA256 hash of name + description
+        - 6-digit numeric portion from SHA256 hash of name + description.
         """
         prefix = self.group[:3].upper() if self.group else "RUL"  # default "RUL" = Rule
         combined = f"{self.name}:{self.description}"
@@ -56,7 +59,7 @@ class Rule:
         return f"{prefix}-{numeric_id}"
 
     @classmethod
-    def from_toml(cls, toml_data: dict) -> "Rule":
+    def from_toml(cls, toml_data: dict) -> Rule:
         """
         Create a Rule object from a TOML dictionary.
         Expects keys:
@@ -69,7 +72,7 @@ class Rule:
           - mutually_exclusive_group (optional)
           - enabled (optional, defaults to True)
           - priority (optional, defaults to 0)
-          - metadata (optional, dict)
+          - metadata (optional, dict).
         """
         from core.rules_engine.rule_builder.combinators import all_of, any_of
         from core.rules_engine.rule_builder.parsers import cond
@@ -77,7 +80,8 @@ class Rule:
         # Required fields
         name = toml_data.get("name")
         if not name:
-            raise InvalidRuleDataError("TOML rule must have a 'name'")
+            msg = "TOML rule must have a 'name'"
+            raise InvalidRuleDataError(msg)
 
         description = toml_data.get("description", "")
 
@@ -101,12 +105,14 @@ class Rule:
         # elif isinstance(raw_source, list):
         #     source = [SourceEnum(s) if isinstance(s, str) else s for s in raw_source]
         else:
-            raise InvalidRuleDataError(f"Invalid source type: {type(raw_source)}")
+            msg = f"Invalid source type: {type(raw_source)}"
+            raise InvalidRuleDataError(msg)
 
         # Parse model/condition
         raw_condition = toml_data.get("model")
         if raw_condition is None:
-            raise InvalidRuleDataError("TOML rule must have a 'model'")
+            msg = "TOML rule must have a 'model'"
+            raise InvalidRuleDataError(msg)
 
         if isinstance(raw_condition, str):
             condition = cond(raw_condition)
@@ -120,23 +126,26 @@ class Rule:
                 elif isinstance(c, dict):
                     child_conditions.append(cls._parse_nested_condition(c))
                 else:
-                    raise InvalidRuleDataError(f"Invalid model type: {type(c)}")
+                    msg = f"Invalid model type: {type(c)}"
+                    raise InvalidRuleDataError(msg)
             condition = all_of(*child_conditions) if op == "all" else any_of(*child_conditions)
         else:
-            raise InvalidRuleDataError(f"Invalid model type: {type(raw_condition)}")
+            msg = f"Invalid model type: {type(raw_condition)}"
+            raise InvalidRuleDataError(msg)
 
         # Parse action
         raw_action = toml_data.get("action")
         if isinstance(raw_action, str):
 
-            def execute_action(facts: dict, msg=raw_action):
-                print(msg)
+            def execute_action(facts: dict, msg=raw_action) -> None:
+                pass
 
             action = Action(name="Log", execute=execute_action)
         elif callable(raw_action):
             action = Action(name=getattr(raw_action, "__name__", "Inline"), execute=raw_action)
         else:
-            raise InvalidRuleDataError(f"Invalid action type: {type(raw_action)}")
+            msg = f"Invalid action type: {type(raw_action)}"
+            raise InvalidRuleDataError(msg)
 
         # Construct Rule instance
         return cls(
@@ -153,7 +162,7 @@ class Rule:
         )
 
     @staticmethod
-    def _parse_nested_condition(data: dict) -> "Expression":
+    def _parse_nested_condition(data: dict) -> Expression:
         """
         Recursively parse nested model dictionaries from TOML/JSON into
         Condition, NotCondition, or ConditionSet objects.
@@ -172,16 +181,18 @@ class Rule:
                 nested = Rule._parse_nested_condition(c)
                 child_conditions.append(nested)
             else:
-                raise InvalidRuleDataError(f"Invalid model type: {type(c)}")
+                msg = f"Invalid model type: {type(c)}"
+                raise InvalidRuleDataError(msg)
 
         if len(child_conditions) == 0:
-            raise InvalidRuleDataError("No conditions provided in nested model")
-        elif len(child_conditions) == 1:
+            msg = "No conditions provided in nested model"
+            raise InvalidRuleDataError(msg)
+        if len(child_conditions) == 1:
             return child_conditions[0]
 
         if op == "all":
             return all_of(*child_conditions)
-        elif op == "any":
+        if op == "any":
             return any_of(*child_conditions)
-        else:
-            raise InvalidRuleDataError(f"Unknown operator '{op}' in nested model")
+        msg = f"Unknown operator '{op}' in nested model"
+        raise InvalidRuleDataError(msg)

@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from core.probes.base import GenericProbe
 
@@ -44,7 +45,7 @@ class TestGenericProbe:
         mock_extractor.apply.return_value = final_snapshot
 
         probe = GenericProbe(
-            name="test-probe", source=mock_source, extractor=mock_extractor, initializer=initializer
+            name="test-probe", source=mock_source, extractor=mock_extractor, initializer=initializer,
         )
 
         result = probe.collect()

@@ -1,7 +1,7 @@
 from typing import Any
 
+from core.rules_engine.model.condition import Condition, ConditionSet, Expression, NotCondition
 from core.rules_engine.model.operators import Operator
-from core.rules_engine.model.condition import Condition, Expression, NotCondition, ConditionSet
 from shared._common.operators import GroupOperator
 
 
@@ -15,15 +15,15 @@ class ConditionEvaluator:
         if isinstance(expression, Condition):
             return ConditionEvaluator._evaluate_single(expression, facts)
 
-        elif isinstance(expression, NotCondition):
+        if isinstance(expression, NotCondition):
             # Recursively evaluate the inner condition and invert it
             return not ConditionEvaluator.evaluate(expression.condition, facts)
 
-        elif isinstance(expression, ConditionSet):
+        if isinstance(expression, ConditionSet):
             return ConditionEvaluator._evaluate_set(expression, facts)
 
-        else:
-            raise TypeError(f"Unknown expression type: {type(expression)}")
+        msg = f"Unknown expression type: {type(expression)}"
+        raise TypeError(msg)
 
     @staticmethod
     def _evaluate_single(condition: Condition, facts: dict) -> bool:
@@ -38,27 +38,26 @@ class ConditionEvaluator:
 
         if condition_set.group_operator == GroupOperator.ALL:
             return all(results)
-        elif condition_set.group_operator == GroupOperator.ANY:
+        if condition_set.group_operator == GroupOperator.ANY:
             return any(results)
 
-        raise ValueError(f"Unsupported GroupOperator: {condition_set.group_operator}")
+        msg = f"Unsupported GroupOperator: {condition_set.group_operator}"
+        raise ValueError(msg)
 
     @staticmethod
     def apply_operator(operator: Operator, left: Any, right: Any) -> bool:
-        """
-        Map your Operator enum to actual Python operations.
-        """
+        """Map your Operator enum to actual Python operations."""
         if operator == Operator.GT:
             return left > right
-        elif operator == Operator.GTE:
+        if operator == Operator.GTE:
             return left >= right
-        elif operator == Operator.LT:
+        if operator == Operator.LT:
             return left < right
-        elif operator == Operator.LTE:
+        if operator == Operator.LTE:
             return left <= right
-        elif operator == Operator.EQ:
+        if operator == Operator.EQ:
             return left == right
-        elif operator == Operator.NE:
+        if operator == Operator.NE:
             return left != right
-        else:
-            raise ValueError(f"Unsupported operator {operator}")
+        msg = f"Unsupported operator {operator}"
+        raise ValueError(msg)

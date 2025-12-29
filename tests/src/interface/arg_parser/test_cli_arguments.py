@@ -1,6 +1,6 @@
 import pytest
 
-from interface.arg_parser.cli_arguments import _CliArgument, CliArguments, MutExGroup
+from interface.arg_parser.cli_arguments import CliArguments, MutExGroup, _CliArgument
 from shared.custom_exceptions import InvalidCLI_ParserConfigurationError
 
 
@@ -11,7 +11,7 @@ class TestCliArgumentDataclass:
 
     def test_get_flags_with_tuple(self):
         arg = _CliArgument(
-            name_or_flags=("-c", "--create-process"), type=str, help="Create process"
+            name_or_flags=("-c", "--create-process"), type=str, help="Create process",
         )
         assert arg.get_flags() == ("-c", "--create-process")
 

@@ -4,7 +4,7 @@ import psutil
 
 from core.probes.base import GenericProbe
 from core.probes.snapshot.process_snapshot.collectors import DEFAULT_COLLECTORS
-from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe
+from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot
 from core.probes.snapshot.snapshot_extractor import SnapshotExtractor
 
 

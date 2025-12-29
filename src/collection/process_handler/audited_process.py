@@ -1,7 +1,8 @@
+import contextlib
 import os
 import signal
 import subprocess
-from typing import Callable
+from typing import TYPE_CHECKING
 
 import psutil
 
@@ -10,11 +11,14 @@ from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapsh
 from shared.custom_exceptions import ProcessNotCreatedException
 from shared.services import logger
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 class AuditedProcess:
     """Container for a psutil Process Instance."""
 
-    def __init__(self, pid_or_command: list[str] | int):
+    def __init__(self, pid_or_command: list[str] | int) -> None:
         """
         Initialize the AuditedProcess.
         - If `pid_or_command` is an int, attach to an existing process using its PID.
@@ -29,7 +33,8 @@ class AuditedProcess:
         elif isinstance(pid_or_command, list):
             self._spawn_process(pid_or_command)
         else:
-            raise ValueError("Argument must be an int (PID) or a list of command arguments")
+            msg = "Argument must be an int (PID) or a list of command arguments"
+            raise ValueError(msg)
 
     def is_alive(self) -> bool:
         """Check if the process is alive."""
@@ -40,17 +45,17 @@ class AuditedProcess:
         except psutil.NoSuchProcess:
             return False
 
-    def _initialize_from_pid(self):
+    def _initialize_from_pid(self) -> None:
         """Attach to an existing process using the PID."""
         if self.pid:
             try:
                 self.process = psutil.Process(self.pid)
                 logger.info(f"Attached to process {self.pid}")
-            except psutil.NoSuchProcess as err:
+            except psutil.NoSuchProcess:
                 msg = f"Process with PID {self.pid} does not exist."
                 logger.warning(msg)
                 raise ProcessNotCreatedException(msg)
-            except psutil.AccessDenied as err:
+            except psutil.AccessDenied:
                 msg = f"Accessed denied for process with PID {self.pid}."
                 logger.warning(msg)
                 raise ProcessNotCreatedException(msg)
@@ -106,26 +111,26 @@ class AuditedProcess:
         *,
         sig: signal.Signals = signal.SIGTERM,
         include_parent: bool = True,
-        timeout: float = None,
-        on_terminate: Callable[[psutil.Process], object | None] = None,
+        timeout: float | None = None,
+        on_terminate: Callable[[psutil.Process], object | None] | None = None,
     ):
-        """Kill a process tree (including grandchildren) with signal
+        """
+        Kill a process tree (including grandchildren) with signal
         "sig" and return a (gone, still_alive) tuple.
         "on_terminate", if specified, is a callback function which is
         called as soon as a child terminates.
         """
         if pid is None:
-            raise ValueError("Cannot kill process: PID is None")
+            msg = "Cannot kill process: PID is None"
+            raise ValueError(msg)
         assert pid != os.getpid(), "won't kill myself"
         parent = psutil.Process(pid)
         children = parent.children(recursive=True)
         if include_parent:
             children.append(parent)
         for p in children:
-            try:
+            with contextlib.suppress(psutil.NoSuchProcess):
                 p.send_signal(sig)
-            except psutil.NoSuchProcess:
-                pass
         gone, alive = psutil.wait_procs(children, timeout=timeout, callback=on_terminate)
         return gone, alive
 

@@ -1,6 +1,5 @@
 import operator
 from enum import Enum
-from typing import runtime_checkable, Protocol
 
 
 class Operator(Enum):

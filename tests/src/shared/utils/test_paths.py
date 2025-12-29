@@ -1,7 +1,7 @@
-import pytest
-from pathlib import Path
 
-from shared.utils.paths import find_project_root, project_root
+import pytest
+
+from shared.utils.paths import find_project_root
 
 
 def test_find_root_current_dir(tmp_path):

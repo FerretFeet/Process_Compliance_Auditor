@@ -2,18 +2,22 @@
 
 import time
 from dataclasses import dataclass
-from typing import Callable, Any
+from typing import TYPE_CHECKING, Any
 
+from collection.process_handler.process_handler import AuditedProcess, ProcessHandler
 from collection.snapshot_manager.snapshot_manager import SnapshotManager
-from core.probes.probes import ProbeLibrary
-from core.probes.snapshot.base import BaseSnapshot
 from core.compliance_engine import ComplianceEngine
 from core.fact_processor.fact_processor import FactProcessor
-from collection.process_handler.process_handler import AuditedProcess, ProcessHandler
+from core.probes.probes import ProbeLibrary
 from core.rules_engine.rules_engine import RulesEngine
-from interface.arg_parser.cli_arg_parser import CliContext, CLI_ArgParser
+from interface.arg_parser.cli_arg_parser import CLI_ArgParser, CliContext
 from shared.custom_exceptions import FactNotFoundException
 from shared.services import logger
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from core.probes.snapshot.base import BaseSnapshot
 
 
 @dataclass(slots=True)
@@ -26,11 +30,7 @@ class RunCondition:
     def is_active(self) -> bool:
         if self.process_num_active_caller() == 0:
             return False
-        if not self.time_limit:
-            return True
-        elif self.time_limit > time.monotonic() - self.start:
-            return True
-        return False
+        return bool(not self.time_limit or self.time_limit > time.monotonic() - self.start)
 
 
 class Main:
@@ -43,7 +43,7 @@ class Main:
         process_handler: ProcessHandler,
         snapshot_manager: SnapshotManager,
         fact_processor: FactProcessor,
-    ):
+    ) -> None:
         self.rules_engine = rules_engine
         self.compliance_engine = compliance_engine
         self.cli_context = cli_context
@@ -56,7 +56,7 @@ class Main:
 
     def setup(self) -> None:
         self.active_rules = self.rules_engine.match_rules(
-            self.rules_engine.get_rules(), self.cli_context.rules
+            self.rules_engine.get_rules(), self.cli_context.rules,
         )
         self.process_handler.add_process(AuditedProcess(self.cli_context.process))
         process_probes = [
@@ -73,7 +73,8 @@ class Main:
         )
 
     def main(self) -> int:
-        """The main function.
+        """
+        The main function.
 
         - Load and filter rules based on cli arguments
         - Attach to process
@@ -96,11 +97,9 @@ class Main:
                 # Test fact processor package - create a fake process snapshot and put it into the expected format and try to parse
 
                 output = self.compliance_engine.run(self.active_rules, facts)
-                print(f"Main Loop Output::\n")
-                for k, v in output.items():
-                    print(f"\n{k}")
-                    for val in v:
-                        print(f"\n\t{val}")
+                for v in output.values():
+                    for _val in v:
+                        pass
 
                 elapsed = time.monotonic() - loop_start
                 time.sleep(max(0, self.run_condition.interval - int(elapsed)))
@@ -108,7 +107,7 @@ class Main:
         except KeyboardInterrupt:
             # Do whatever i need to safely handle this
             # allow multiple interrupts? Daemon mode?
-            logger.info(f"Keyboard Interrupt, Shutting down")
+            logger.info("Keyboard Interrupt, Shutting down")
         except FactNotFoundException as err:
             logger.error(err)
         finally:

@@ -22,7 +22,7 @@ class CLI_ArgParser:
 
         for group in CliArguments.mutually_exclusive_groups:
             mutually_exclusive_group = self.parser.add_mutually_exclusive_group(
-                required=group.required
+                required=group.required,
             )
             for item in group.name_or_flags:
                 arg = CliArguments.get_arg_by_name_or_flag(item)
@@ -35,34 +35,38 @@ class CLI_ArgParser:
         self.args = self.parser.parse_args()
 
     def _get_argument(self, name_or_flag: str) -> Any | None:
-        """Return the argument for the given CLI argument.
+        """
+        Return the argument for the given CLI argument.
 
         Args:
             name_or_flag (str): CLI argument name or flag.
                 can be passed as raw flag ('--create-process')
                 or as Namespace key (create_process).
+
         Returns:
             argument value or None if no argument was found.
+
         """
         attr_name = name_or_flag.lstrip("-").replace("-", "_")
         return getattr(self.args, attr_name, None)
 
     def get_create_process_flag(self) -> bool:
-        """Check if the create process argument was passed
+        """
+        Check if the create process argument was passed.
 
         If True, this application is responsible for the audited process.
         If False, this application attached to an independent process.
         """
         if self._get_argument("pid"):
             return False
-        elif self._get_argument("create-process"):
+        if self._get_argument("create-process"):
             return True
         # FIXME
         # This line should be unnecessary due to mut-ex group
         # Dec 21
         msg = (
-            f"Expected either a process ID as first positional argument"
-            f' or "create-process" argument.'
+            "Expected either a process ID as first positional argument"
+            ' or "create-process" argument.'
         )
         raise InvalidCLI_ParserConfigurationError(msg)
 

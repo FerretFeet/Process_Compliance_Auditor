@@ -1,9 +1,9 @@
+
 import pytest
-from unittest.mock import MagicMock
 
 from core.fact_processor.fact_processor import FactProcessor
-from shared.custom_exceptions import FactNotFoundException
 from core.rules_engine.model.rule import SourceEnum
+from shared.custom_exceptions import FactNotFoundException
 
 
 @pytest.fixture
@@ -55,8 +55,8 @@ class TestParseFacts:
                     "membership": "gold",
                     "nested": {"key": "value"},
                     "cpu_count": 8,
-                }
-            ]
+                },
+            ],
         }
 
         result = processor.parse_facts(snapshots)

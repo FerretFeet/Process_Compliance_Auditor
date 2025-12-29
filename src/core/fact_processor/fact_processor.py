@@ -1,14 +1,14 @@
-from collections import defaultdict
-from dataclasses import asdict
-from typing import Mapping, Any
+from typing import TYPE_CHECKING, Any
 
 from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model.rule import SourceEnum
-from shared._common.facts import FactSpec
 from shared.custom_exceptions import FactNotFoundException
 from shared.services import logger
 from shared.utils import cfg
 from shared.utils.resolve_path import resolve_path
+
+if TYPE_CHECKING:
+    from shared._common.facts import FactSpec
 
 # FIXME: figure out if strict is something we want to keep
 # If so, add as parameter to function and fix tests
@@ -36,7 +36,6 @@ class FactProcessor:
 
     def get_facts_by_sources(self, sources: list[str]) -> dict[str, dict[str, FactSpec]]:
         """Get all available facts from all passed sources."""
-
         returndict = {}
         for source in sources:
             val = self.get_facts_by_source(source)
@@ -68,6 +67,7 @@ class FactProcessor:
 
         Exception:
             FactNotFoundException: if strict and no data can be found for a particular fact.
+
         """
         factsheets = {}
         for src, snapshots in snapshots.items():

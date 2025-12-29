@@ -1,14 +1,14 @@
-import pytest
 from unittest.mock import MagicMock
+
 import psutil
+
 from core.probes.snapshot.process_snapshot.collectors import (
-    collect_identity,
     collect_cpu,
+    collect_identity,
     collect_memory,
     collect_relationships,
 )
 from core.probes.snapshot.process_snapshot.process_snapshot import (
-    ProcessSnapshot,
     CpuSnapshot,
     MemorySnapshot,
 )

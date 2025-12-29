@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Sequence, Iterable, Type, Optional, Any
+from typing import TYPE_CHECKING, Any
 
-from core.rules_engine.model.condition import Expression
-from core.rules_engine.model.field import FieldRef
-from shared._common.operators import Operator, GroupOperator
+from shared._common.operators import GroupOperator, Operator
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
+
+    from core.rules_engine.model.condition import Expression
+    from core.rules_engine.model.field import FieldRef
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,11 +56,12 @@ class ConditionSet:
     @staticmethod
     def _validate(conditions: Sequence[Expression]) -> None:
         if len(conditions) < 2:
-            raise ValueError(f"ConditionSet requires at least two conditions")
+            msg = "ConditionSet requires at least two conditions"
+            raise ValueError(msg)
 
     @staticmethod
     def _flatten(
-        operator: GroupOperator, conditions: Iterable[Expression]
+        operator: GroupOperator, conditions: Iterable[Expression],
     ) -> tuple[Expression, ...]:
         flattened = []
         for c in conditions:

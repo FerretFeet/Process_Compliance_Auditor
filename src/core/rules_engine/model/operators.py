@@ -1,3 +1,3 @@
-from shared._common.operators import Operator, GroupOperator
+from shared._common.operators import GroupOperator, Operator
 
-__all__ = ["Operator", "GroupOperator"]
+__all__ = ["GroupOperator", "Operator"]

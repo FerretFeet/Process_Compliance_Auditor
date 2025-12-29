@@ -1,9 +1,7 @@
 import logging
-import os
 
 from shared.services import logger
 from shared.utils import project_root
-
 from tests.fixtures import *  # noqa
 
 

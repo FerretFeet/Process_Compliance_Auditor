@@ -1,8 +1,9 @@
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
+
 from core.compliance_engine import ComplianceEngine
-from core.rules_engine.model.rule import Rule, Action, SourceEnum
+from core.rules_engine.model.rule import Action, Rule, SourceEnum
 
 
 @pytest.fixture
@@ -11,7 +12,7 @@ def factsheets():
         "process": {
             "age": 30,
             "cpu_count": 8,
-        }
+        },
     }
 
 
@@ -121,7 +122,7 @@ class TestFactRouting:
 
         seen = {}
 
-        def fake_evaluate(condition, facts):
+        def fake_evaluate(condition, facts) -> bool:
             seen["facts"] = facts
             return True
 

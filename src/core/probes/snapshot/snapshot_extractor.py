@@ -1,18 +1,21 @@
-from typing import Callable, List, TypeVar, Generic
+from typing import TYPE_CHECKING, TypeVar
 
 from core.probes.snapshot.base import BaseSnapshot
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 S = TypeVar("S", bound=BaseSnapshot)
 R = TypeVar("R")
 
 
-class SnapshotExtractor(Generic[S, R]):
+class SnapshotExtractor[S: BaseSnapshot, R]:
     """Class to extract S attrs from a mapping R."""
 
-    def __init__(self):
-        self.collectors: List[Callable[[R, S], None]] = []
+    def __init__(self) -> None:
+        self.collectors: list[Callable[[R, S], None]] = []
 
-    def register_collector(self, collector: Callable[[R, S], None]) -> "SnapshotExtractor":
+    def register_collector(self, collector: Callable[[R, S], None]) -> SnapshotExtractor:
         """Add a collector to the collectors list."""
         self.collectors.append(collector)
         return self

@@ -1,13 +1,10 @@
-from typing import Any
+
+from dataclasses import dataclass
+from unittest.mock import patch
 
 import pytest
-import time
-from unittest.mock import patch
-from dataclasses import dataclass
 
 from core.probes.snapshot.base import BaseSnapshot
-from shared.utils.resolve_path import resolve_path
-
 
 # --- Concrete Implementation for Testing ---
 
@@ -17,7 +14,7 @@ class MockSnapshot(BaseSnapshot):
     data: str = ""
 
     @classmethod
-    def from_source(cls, source: str) -> "MockSnapshot":
+    def from_source(cls, source: str) -> MockSnapshot:
         return cls(data=source)
 
 

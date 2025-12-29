@@ -1,15 +1,14 @@
-from dataclasses import fields, MISSING
+from dataclasses import MISSING, fields
 
 import pytest
 
-from core.rules_engine.model.field import FieldRef
+from core.rules_engine.model import GroupOperator, Operator
 from core.rules_engine.model.condition import Condition, ConditionSet, NotCondition
-from core.rules_engine.model import Operator, GroupOperator
+from core.rules_engine.model.field import FieldRef
 from core.rules_engine.model.rule import Action, Rule
+from core.rules_engine.rule_builder.combinators import all_of, any_of, not_
 from core.rules_engine.rule_builder.parsers import cond
-from core.rules_engine.rule_builder.combinators import not_, all_of, any_of
 from core.rules_engine.rule_builder.rule_builder import RuleBuilder
-from tests.fixtures.fake_fact_registry import fake_fact_registry
 
 
 class TestRuleBuilderBase:
@@ -164,7 +163,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         )
 
         # The model should be a NotCondition wrapping the original Condition
-        from core.rules_engine.model.condition import NotCondition, Condition
+        from core.rules_engine.model.condition import Condition, NotCondition
 
         assert isinstance(rule.condition, NotCondition)
         assert isinstance(rule.condition.condition, Condition)

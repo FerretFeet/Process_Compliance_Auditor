@@ -1,12 +1,12 @@
-import pytest
-from unittest.mock import MagicMock, patch
+from typing import Never
+
 import psutil
-import time
+
 from core.probes.snapshot.process_snapshot.process_snapshot import (
-    ProcessSnapshot,
-    _safe,
     CpuSnapshot,
     MemorySnapshot,
+    ProcessSnapshot,
+    _safe,
 )
 
 
@@ -22,8 +22,9 @@ class TestSafeHelper:
     def test_safe_on_exception_returns_default(self):
         """Should return the default value when an exception occurs."""
 
-        def buggy():
-            raise ValueError("Boom")
+        def buggy() -> Never:
+            msg = "Boom"
+            raise ValueError(msg)
 
         assert _safe(buggy, default="fallback") == "fallback"
 

@@ -1,12 +1,11 @@
 import re
-from typing import Type, Optional
 
 from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model.condition import Condition
 from core.rules_engine.model.field import FieldRef
 from shared._common.operators import Operator
 from shared.services import logger
-from shared.utils import get_project_config, cfg
+from shared.utils import cfg
 
 _strict = cfg.get("strict")
 
@@ -19,15 +18,15 @@ TYPE_MAP = {
 }
 
 
-def cast_value(value_str: str, expected_type: Type) -> object:
+def cast_value(value_str: str, expected_type: type) -> object:
     """Cast a string to expected_type according to current mode."""
     try:
         return expected_type(value_str)
     except Exception:
         if _strict is True:
-            raise ValueError(f"Cannot cast '{value_str}' to {expected_type.__name__}")
-        else:
-            return value_str
+            msg = f"Cannot cast '{value_str}' to {expected_type.__name__}"
+            raise ValueError(msg)
+        return value_str
 
 
 def cond(expr: str) -> Condition:
@@ -45,13 +44,14 @@ def cond(expr: str) -> Condition:
         if match:
             field_str, value_str = map(str.strip, re.split(pattern, expr, maxsplit=1))
 
-            declared_type: Optional[Type] = None
+            declared_type: type | None = None
             if ":" in value_str:
                 raw_value, type_name = value_str.rsplit(":", 1)
                 value_str = raw_value.strip()
                 declared_type = TYPE_MAP.get(type_name.strip())
                 if declared_type is None:
-                    raise ValueError(f"Unknown explicit type '{type_name}' in expression '{expr}'.")
+                    msg = f"Unknown explicit type '{type_name}' in expression '{expr}'."
+                    raise ValueError(msg)
 
             try:
                 field_fact = FactRegistry.get_fact(field_str)
@@ -66,9 +66,12 @@ def cond(expr: str) -> Condition:
                 fact_type = str  # fallback for unknown fields
 
             if declared_type and declared_type != fact_type:
-                raise ValueError(
+                msg = (
                     f"Declared type '{declared_type.__name__}' does not match "
                     f"fact registry type '{fact_type.__name__}' for '{field_str}'."
+                )
+                raise ValueError(
+                    msg,
                 )
 
             value = cast_value(value_str, fact_type)
@@ -76,4 +79,5 @@ def cond(expr: str) -> Condition:
             field_ref = FieldRef(field_str, fact_type)
             return Condition(field=field_ref, operator=op_enum, value=value)
 
-    raise ValueError(f"Could not parse expression: {expr}")
+    msg = f"Could not parse expression: {expr}"
+    raise ValueError(msg)

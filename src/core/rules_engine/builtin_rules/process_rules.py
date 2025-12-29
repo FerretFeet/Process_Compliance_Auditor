@@ -19,7 +19,7 @@ rule2 = (
 rule3 = (
     RuleBuilder()
     .define(
-        "memory percent and cpu percent", "Cpu usage and memory usage are below percentage value"
+        "memory percent and cpu percent", "Cpu usage and memory usage are below percentage value",
     )
     .source("process")
     .when("cpu.percent < 60")

@@ -1,8 +1,8 @@
 import pytest
 
-from core.rules_engine.rule_builder.combinators import all_of, any_of
+from core.rules_engine.model import GroupOperator, Operator
 from core.rules_engine.model.condition import Condition, ConditionSet, NotCondition
-from core.rules_engine.model import Operator, GroupOperator
+from core.rules_engine.rule_builder.combinators import all_of, any_of
 
 
 class TestConditionBase:

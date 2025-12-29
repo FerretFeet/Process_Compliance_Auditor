@@ -1,6 +1,7 @@
-from typing import Protocol, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
-from core.probes.snapshot.base import BaseSnapshot
+if TYPE_CHECKING:
+    from core.probes.snapshot.base import BaseSnapshot
 
 
 class Probe(Protocol):
@@ -10,7 +11,7 @@ class Probe(Protocol):
 
 
 class SnapshotManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self._probes: list[Probe] = []
 
     def get_all_snapshots(self) -> dict[str, list[BaseSnapshot]]:

@@ -1,7 +1,6 @@
-import pytest
 from unittest.mock import MagicMock
 
-from collection.snapshot_manager.snapshot_manager import SnapshotManager, Probe
+from collection.snapshot_manager.snapshot_manager import Probe
 
 
 class TestSnapshotManager:

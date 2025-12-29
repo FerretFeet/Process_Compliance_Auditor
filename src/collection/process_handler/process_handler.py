@@ -5,14 +5,15 @@ from shared.services import logger
 class ProcessHandler:
     """Manages processes."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise the ProcessHandler."""
         self._processes: list[AuditedProcess] = []
 
-    def add_process(self, process: AuditedProcess):
+    def add_process(self, process: AuditedProcess) -> None:
         """Track an existing process."""
         if not isinstance(process, AuditedProcess):
-            raise TypeError("Expected an AuditedProcess instance")
+            msg = "Expected an AuditedProcess instance"
+            raise TypeError(msg)
         self._processes.append(process)
 
     def num_active(self) -> int:

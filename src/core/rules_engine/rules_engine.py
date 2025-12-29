@@ -1,20 +1,23 @@
-import datetime
-import pathlib
 import tomllib
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Callable, Mapping, Optional
+from typing import TYPE_CHECKING
 
-from core.rules_engine.model.condition import Expression, Condition, NotCondition, ConditionSet
-from shared._common.facts import FactSpecProtocol
-from shared.custom_exceptions import (
-    RuleWithNoAvailableFactException,
-    InvalidRuleDataError,
-    InvalidRuleFilterException,
-)
 from core.rules_engine.builtin_rules import ALL_BUILTIN_RULES
 from core.rules_engine.model import Rule
+from core.rules_engine.model.condition import Condition, ConditionSet, Expression, NotCondition
+from shared._common.facts import FactSpecProtocol
+from shared.custom_exceptions import (
+    InvalidRuleDataError,
+    InvalidRuleFilterException,
+    RuleWithNoAvailableFactException,
+)
 from shared.services import logger
-from shared.utils import project_root, cfg
+from shared.utils import cfg, project_root
+
+if TYPE_CHECKING:
+    import datetime
+    import pathlib
 
 FactCheck = Callable[[dict], bool]
 
@@ -58,7 +61,8 @@ class RulesEngine:
         self.validate_rules()
 
     def get_rules(self) -> dict[str, Rule]:
-        """Return all rules defined in project.toml.
+        """
+        Return all rules defined in project.toml.
 
         Loads rules if not already loaded.
         """
@@ -67,11 +71,11 @@ class RulesEngine:
             self.rules = {rule.id: rule for rule in rules + self.builtin_rules}
         return self.rules
 
-    def validate_rules(self):
+    def validate_rules(self) -> None:
         """Check that rules correspond to available facts."""
         if self.fact_provider is None:
             logger.warning(
-                f"No fact_provider defined for {type(self).__name__}. Validation skipped."
+                f"No fact_provider defined for {type(self).__name__}. Validation skipped.",
             )
             return
 
@@ -111,7 +115,6 @@ class RulesEngine:
         Recursively validate a rule Expression.
         Appends to `errors` on failure.
         """
-
         # ── Leaf ──────────────────────────────────────────────
         if isinstance(expr, Condition):
             path = expr.field.path
@@ -157,18 +160,19 @@ class RulesEngine:
         errors.append((f"Invalid rule: {rule.id}: Unknown expression type {type(expr)}", rule))
 
     def _load_rules_from_toml(self, rules_path: pathlib.Path) -> list[Rule] | None:
-        """Load rules from project.toml.
+        """
+        Load rules from project.toml.
 
         Returns all rules defined in project.toml.
         """
-        print(f"rules_path: {rules_path}")
         if not rules_path.exists():
             rules_path.parent.mkdir(parents=True, exist_ok=True)
             rules_path.touch()
         with rules_path.open("rb") as f:
             uf_rules = tomllib.load(f).get("rules", [])
         if not isinstance(uf_rules, list):
-            raise InvalidRuleDataError("Expected 'rules' to be a list of tables in TOML")
+            msg = "Expected 'rules' to be a list of tables in TOML"
+            raise InvalidRuleDataError(msg)
         rules = []
         for rule_data in uf_rules:
             try:
@@ -177,13 +181,15 @@ class RulesEngine:
                 logger.warning(f"Skipping invalid rule_builder: {e}")
         return rules
 
-    def match_rules(self, rules: dict[str, Rule], filters: Optional[list[str]]) -> dict[str, Rule]:
-        """Return only the rules matching the given filters.
+    def match_rules(self, rules: dict[str, Rule], filters: list[str] | None) -> dict[str, Rule]:
+        """
+        Return only the rules matching the given filters.
 
         Args:
             rules: rules to filter
             filters: filters to apply. Can be rule_builder.id or rule_builder.name
                 If filter is None, return all rules.
+
         """
         if filters is None:
             return rules

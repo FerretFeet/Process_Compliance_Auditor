@@ -1,2 +1,2 @@
-from .operators import Operator, GroupOperator
-from .rule import Rule, Action
+from .operators import GroupOperator, Operator
+from .rule import Action, Rule

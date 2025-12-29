@@ -1,4 +1,5 @@
-"""Builder class for Rule objects.
+"""
+Builder class for Rule objects.
 
 Usage:
 
@@ -20,15 +21,21 @@ rule3 = RuleBuilder.define("flagged_or_vip", "Flagged users or VIP in allowed re
 
 """
 
-from typing import Callable
 
-from core.rules_engine.model.condition import Expression
-from core.rules_engine.model.rule import Action, Rule, ActionType, SourceEnum
+from typing import TYPE_CHECKING
+
+from core.rules_engine.model.rule import Action, Rule, SourceEnum
 from core.rules_engine.rule_builder.parsers import cond
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from core.rules_engine.model.condition import Expression
 
 
 class RuleBuilder:
-    """Builder class for Rule objects.
+    """
+    Builder class for Rule objects.
 
     Usage:
     rule_builder = (
@@ -42,7 +49,7 @@ class RuleBuilder:
     )
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._priority = 0
         self._name = None
         self._description = None
@@ -54,78 +61,84 @@ class RuleBuilder:
         self._enabled = True
         self._metadata = {}
 
-    def define(self, name: str, description: str) -> "RuleBuilder":
+    def define(self, name: str, description: str) -> RuleBuilder:
         self._name = name
         self._description = description
         return self
 
-    def when(self, condition: Expression) -> "RuleBuilder":
+    def when(self, condition: Expression) -> RuleBuilder:
         if self._condition is not None:
-            raise ValueError("when() already called")
+            msg = "when() already called"
+            raise ValueError(msg)
         if isinstance(condition, str):
             condition = cond(condition)
         self._condition = condition
         return self
 
-    def source(self, source: str) -> "RuleBuilder":
+    def source(self, source: str) -> RuleBuilder:
         if isinstance(source, str):
             source = SourceEnum(source)
         if self._source is None:
             self._source = source
         else:
-            raise ValueError("source() already called.")
+            msg = "source() already called."
+            raise ValueError(msg)
         return self
 
-    def and_(self, condition: Expression) -> "RuleBuilder":
+    def and_(self, condition: Expression) -> RuleBuilder:
         if self._condition is None:
-            raise ValueError("and_() called before when()")
+            msg = "and_() called before when()"
+            raise ValueError(msg)
         if isinstance(condition, str):
             condition = cond(condition)
         self._condition = self._condition & condition
         return self
 
-    def or_(self, condition: Expression) -> "RuleBuilder":
+    def or_(self, condition: Expression) -> RuleBuilder:
         if self._condition is None:
-            raise ValueError("or_() called before when()")
+            msg = "or_() called before when()"
+            raise ValueError(msg)
         if isinstance(condition, str):
             condition = cond(condition)
         self._condition = self._condition | condition
         return self
 
-    def disable(self) -> "RuleBuilder":
+    def disable(self) -> RuleBuilder:
         """Disable rule."""
         self._enabled = False
         return self
 
-    def priority(self, priority: int) -> "RuleBuilder":
-        """Assign the priority to rule"""
+    def priority(self, priority: int) -> RuleBuilder:
+        """Assign the priority to rule."""
         self._priority = priority
         return self
 
-    def metadata(self, **kwargs) -> "RuleBuilder":
+    def metadata(self, **kwargs) -> RuleBuilder:
         """Set arbitrary key/value metadata on the rule."""
         self._metadata.update(kwargs)
         return self
 
-    def set_metadata(self, data: dict) -> "RuleBuilder":
+    def set_metadata(self, data: dict) -> RuleBuilder:
         self._metadata = dict(data)
         return self
 
-    def group(self, name: str) -> "RuleBuilder":
-        """Assign the rule to a named group"""
+    def group(self, name: str) -> RuleBuilder:
+        """Assign the rule to a named group."""
         self._group = name
         return self
 
-    def mutually_exclusive_group(self, name: str) -> "RuleBuilder":
-        """Assign the rule to a mutually exclusive group"""
+    def mutually_exclusive_group(self, name: str) -> RuleBuilder:
+        """Assign the rule to a mutually exclusive group."""
         self._mutually_exclusive_group = name
         return self
 
     def then(self, action: Callable) -> Rule:
         if self._condition is None:
-            raise ValueError("Rule has no model")
+            msg = "Rule has no model"
+            raise ValueError(msg)
         if self._name is None:
-            raise ValueError("Rule has no name")
+            msg = "Rule has no name"
+            raise ValueError(msg)
         if callable(action):
             action = Action(name="Inline", execute=action)
         return Rule(

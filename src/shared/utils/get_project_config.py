@@ -7,7 +7,7 @@ from shared.custom_exceptions import InvalidProjectConfigurationError
 
 
 class ConfigManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._loaded = False
         self.get_config()
@@ -19,7 +19,7 @@ class ConfigManager:
             msg = f"{key} not found in config"
             raise InvalidProjectConfigurationError(msg) from err
 
-    def get_config(self, fp: Path = None) -> dict:
+    def get_config(self, fp: Path | None = None) -> dict:
         if not self._loaded:
             if fp is None:
                 fp = Path("config/project_config.toml")
@@ -33,11 +33,11 @@ class ConfigManager:
 
         return self._config
 
-    def override(self, key: str, value: Any):
+    def override(self, key: str, value: Any) -> None:
         """Method specifically for testing."""
         self._config[key] = value
 
-    def clear(self):
+    def clear(self) -> None:
         """Resets the state for fresh tests."""
         self._config = {}
         self._loaded = False

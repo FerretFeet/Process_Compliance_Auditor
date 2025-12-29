@@ -1,26 +1,23 @@
-from tokenize import group
 
 import pytest
 
-from core.fact_processor.fact_registry import FactRegistry
+from core.rules_engine.model import GroupOperator, Operator
+from core.rules_engine.model.condition import Condition, ConditionSet
 from core.rules_engine.model.field import FieldRef
 from core.rules_engine.model.rule import Action, Rule, SourceEnum
-from core.rules_engine.model.condition import Condition, ConditionSet
-from core.rules_engine.model import Operator, GroupOperator
 from shared.utils import cfg
-from tests.fixtures.fake_fact_registry import fake_fact_registry
 
 
 class TestActionBase:
     def setup_method(self):
         self.called = False
 
-        def sample_execute(facts):
+        def sample_execute(facts) -> None:
             self.called = True
             facts["executed"] = True
 
         self.action = Action(
-            name="SampleAction", execute=sample_execute, description="A test action"
+            name="SampleAction", execute=sample_execute, description="A test action",
         )
         self.facts = {}
 
@@ -65,7 +62,7 @@ class TestRule(TestActionBase):
             ValueError,
             match=r"Could not find field '[a-zA-Z]+' for expression '.+' in fact registry\.",
         ):
-            rule = Rule.from_toml(toml_data)
+            Rule.from_toml(toml_data)
 
     def test_raises_value_cast_mismatch(self, fake_fact_registry):
         cfg.override("strict", True)
@@ -81,7 +78,7 @@ class TestRule(TestActionBase):
             ValueError,
             match=r"Declared type '[a-zA-Z]+' does not match fact registry type '.+' for '.+'\.",
         ):
-            rule = Rule.from_toml(toml_data)
+            Rule.from_toml(toml_data)
 
     def test_rule_attributes(self):
         assert (

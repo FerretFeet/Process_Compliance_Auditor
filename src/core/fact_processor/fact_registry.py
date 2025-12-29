@@ -1,27 +1,29 @@
-from collections import defaultdict
-from typing import Type, Any, Dict, Set
+from typing import TYPE_CHECKING, Any
 
 from core.fact_processor.available_facts.process_facts import PROCESS_FACTS
-from core.rules_engine.model.rule import SourceEnum
 from shared._common.facts import FactSpec
-from shared._common.operators import Operator
+
+if TYPE_CHECKING:
+    from core.rules_engine.model.rule import SourceEnum
+    from shared._common.operators import Operator
 
 
 class FactRegistry:
-    _registry: Dict[str, FactSpec] = {}
+    _registry: dict[str, FactSpec] = {}
 
     @classmethod
     def register_raw(
         cls,
         path: str,
-        type_: Type,
+        type_: type,
         source: SourceEnum,
-        allowed_operators: Set[Operator],
+        allowed_operators: set[Operator],
         description: str = "",
-        allowed_values: Set[str] | None = None,
+        allowed_values: set[str] | None = None,
     ) -> None:
         if path in cls._registry:
-            raise ValueError(f"Fact '{path}' is already registered")
+            msg = f"Fact '{path}' is already registered"
+            raise ValueError(msg)
         fact = FactSpec(
             path=path,
             type=type_,
@@ -36,13 +38,15 @@ class FactRegistry:
     @classmethod
     def register_fact(cls, fact: FactSpec) -> None:
         if fact.path in cls._registry:
-            raise ValueError(f"Fact '{fact.path}' is already registered")
+            msg = f"Fact '{fact.path}' is already registered"
+            raise ValueError(msg)
         cls._registry[fact.path] = fact
 
     @classmethod
     def get_fact(cls, path: str) -> FactSpec:
         if path not in cls._registry:
-            raise KeyError(f"Fact '{path}' is not registered")
+            msg = f"Fact '{path}' is not registered"
+            raise KeyError(msg)
         return cls._registry[path]
 
     @classmethod
@@ -55,15 +59,16 @@ class FactRegistry:
         if value is None:
             return True  # optional: allow None
         if not isinstance(value, spec.type):
-            raise TypeError(f"Expected {path} to be {spec.type}, got {type(value)}")
+            msg = f"Expected {path} to be {spec.type}, got {type(value)}"
+            raise TypeError(msg)
         return True
 
     @classmethod
-    def _clear(cls):
+    def _clear(cls) -> None:
         cls._registry = {}
 
 
-def register_defaults():
+def register_defaults() -> None:
     for fact in PROCESS_FACTS:
         FactRegistry.register_fact(fact)
 
