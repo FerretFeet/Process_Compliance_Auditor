@@ -49,7 +49,9 @@ class TestMainE2E:
         # Simulate process count
         self.fake_process_handler.num_active.return_value = 1
         # Return a fake process object when asked
-        self.fake_process_handler.get_processes.return_value = ["fake_proc"]
+        fake_proc_obj = MagicMock()
+        fake_proc_obj.process = MagicMock()
+        self.fake_process_handler.get_processes.return_value = [fake_proc_obj]
         # Track add/remove calls
         self.fake_process_handler.add_process.return_value = None
         self.fake_process_handler.remove_all.return_value = None
@@ -111,9 +113,6 @@ class TestMainE2E:
             source=SourceEnum.PROCESS,
             allowed_operators=set(Operator)
         )
-        print(f'debug test'
-              f'\n'
-              f'{fact_registry.all_facts()}')
 
         fact_processor = FactProcessor(fact_registry)
 
@@ -159,7 +158,9 @@ class TestMainE2E:
         # Fake ProcessHandler
         fake_process_handler = MagicMock()
         fake_process_handler.num_active.return_value = 1
-        fake_process_handler.get_processes.return_value = ["fake_proc"]
+        fake_proc_obj = MagicMock()
+        fake_proc_obj.process = MagicMock()
+        self.fake_process_handler.get_processes.return_value = [fake_proc_obj]
 
         # CLI context
         class FakeCLI:

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Callable, Any
 
 from collection.snapshot_manager.snapshot_manager import SnapshotManager
+from core.probes.probes import ProbeLibrary
 from core.probes.snapshot.base import BaseSnapshot
 from core.compliance_engine import ComplianceEngine
 from core.fact_processor.fact_processor import FactProcessor
@@ -50,8 +51,8 @@ class Main:
     def setup(self) -> None:
         self.active_rules = self.rules_engine.match_rules(self.rules_engine.get_rules(), self.cli_context.rules)
         self.process_handler.add_process(AuditedProcess(self.cli_context.process))
-
-        self.snapshot_manager.add_probe(self.process_handler.get_processes())
+        process_probes = [ProbeLibrary.process_probe(proc.process) for proc in self.process_handler.get_processes()]
+        self.snapshot_manager.add_probes(process_probes)
 
         self.run_condition = RunCondition(time.monotonic(), self.cli_context.time_limit,
                                           self.cli_context.interval, self.process_handler.num_active)
@@ -84,7 +85,10 @@ class Main:
 
                 output = self.compliance_engine.run(self.active_rules, facts)
                 print(f'Main Loop Output::\n')
-                print(output)
+                for k, v in output.items():
+                    print(f'\n{k}')
+                    for val in v:
+                        print(f"\n\t{val}")
 
                 elapsed = time.monotonic() - loop_start
                 time.sleep(max(0, self.run_condition.interval - int(elapsed)))

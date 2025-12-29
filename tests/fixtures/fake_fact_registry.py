@@ -14,6 +14,7 @@ def fake_fact_registry():
     FactRegistry.register_raw('cpu_count', int, SourceEnum.PROCESS, set(Operator))
 
 
+
     yield  # The test runs here
 
     # Teardown

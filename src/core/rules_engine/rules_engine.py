@@ -4,6 +4,7 @@ import tomllib
 from dataclasses import dataclass
 from typing import Callable, Mapping, Optional
 
+from core.rules_engine.model.condition import Expression, Condition, NotCondition, ConditionSet
 from shared._common.facts import FactSpecProtocol
 from shared.custom_exceptions import RuleWithNoAvailableFactException, InvalidRuleDataError, InvalidRuleFilterException
 from core.rules_engine.builtin_rules import ALL_BUILTIN_RULES
@@ -38,7 +39,7 @@ class RulesEngine:
                  builtin_rules: list[Rule] = _builtin_rules
                  ) -> None:
         self.fact_provider = fact_provider
-        self.builtin_rules = builtin_rules
+        self.builtin_rules = builtin_rules or []
         self.toml_rules_path = toml_rules_path
         self.rules = None
         self.rules = self.get_rules()
@@ -53,52 +54,109 @@ class RulesEngine:
         Loads rules if not already loaded.
         """
         if self.rules is None:
-            rules = self._load_rules_from_toml(self.toml_rules_path)
+            rules = self._load_rules_from_toml(self.toml_rules_path) or []
             self.rules = {rule.id: rule
                     for rule in rules + self.builtin_rules}
         return self.rules
 
-
     def validate_rules(self):
         """Check that rules correspond to available facts."""
         if self.fact_provider is None:
-            logger.warning(f'No fact_provider defined for {type(self).__name__}. Validation skipped.')
+            logger.warning(
+                f"No fact_provider defined for {type(self).__name__}. Validation skipped."
+            )
             return
+
         available_facts = self.fact_provider()
         errors: list = []
         valids = {}
+
         for rule in self.rules.values():
-            msg = f"Invalid rule: {rule.id}: {rule.name}\n\t"
-            if rule.condition.field.path not in available_facts:
-                msg += " Condition field not found "
-                errors.append((msg, rule))
-                continue
-            fact: FactSpecProtocol = available_facts[rule.condition.field.path]
-            flag = False
-            if rule.condition.field.type != fact.type:
-                flag = True
-                msg += f" Condition type mismatch. Expected: {fact.type}. Actual: {rule.condition.field.type} "
-            if fact.allowed_operators and rule.condition.operator.value not in fact.allowed_operators:
-                flag = True
-                msg += f" Condition operator mismatch. Expected: {fact.allowed_operators}. Actual: {rule.condition.operator} "
-            if fact.allowed_values and rule.condition.value not in fact.allowed_values:
-                flag = True
-                msg += f" Condition operator mismatch. Expected: {fact.allowed_values}. Actual: {rule.condition.value} "
-            if flag:
-                errors.append((msg, rule))
-                continue
-            valids[rule.id] = rule
+            self._validate_expression(
+                rule.condition,
+                available_facts,
+                rule,
+                errors,
+            )
+
+            if rule.id not in {r.id for _, r in errors}:
+                valids[rule.id] = rule
+            else:
+                errors.append(rule.name)
+
         if errors:
-            for error in errors:
-                logger.warning(error[0])
-            raise RuleWithNoAvailableFactException("\n".join(error[1].name for error in errors))
+            for msg, _ in errors:
+                logger.warning(msg)
+
+            raise RuleWithNoAvailableFactException(
+                "\n".join(rule.name for _, rule in errors)
+            )
+
         self.rules = valids
 
-    def _load_rules_from_toml(self, rules_path: pathlib.Path) -> list[Rule]:
+    def _validate_expression(
+            self,
+            expr: Expression,
+            available_facts: dict[str, FactSpecProtocol],
+            rule,
+            errors: list,
+    ) -> None:
+        """
+        Recursively validate a rule Expression.
+        Appends to `errors` on failure.
+        """
+
+        # ── Leaf ──────────────────────────────────────────────
+        if isinstance(expr, Condition):
+            path = expr.field.path
+            msg = f"Invalid rule: {rule.id}: {rule.name}\n\t"
+
+            if path not in available_facts:
+                errors.append((msg + "Condition field not found", rule))
+                return
+
+            fact = available_facts[path]
+            failed = False
+
+            if expr.field.type != fact.type:
+                failed = True
+                msg += f"Condition type mismatch. Expected {fact.type}, got {expr.field.type}. "
+
+            if fact.allowed_operators and expr.operator not in fact.allowed_operators:
+                failed = True
+                msg += f"Condition operator mismatch. Expected {fact.allowed_operators}, got {expr.operator}. "
+
+            if fact.allowed_values and expr.value not in fact.allowed_values:
+                failed = True
+                msg += f"Condition value mismatch. Expected {fact.allowed_values}, got {expr.value}. "
+
+            if failed:
+                errors.append((msg, rule))
+            return
+
+        # ── NOT ───────────────────────────────────────────────
+        if isinstance(expr, NotCondition):
+            self._validate_expression(expr.condition, available_facts, rule, errors)
+            return
+
+        # ── AND / OR ──────────────────────────────────────────
+        if isinstance(expr, ConditionSet):
+            for child in expr.conditions:
+                self._validate_expression(child, available_facts, rule, errors)
+            return
+
+        # ── Unknown node ──────────────────────────────────────
+        errors.append((f"Invalid rule: {rule.id}: Unknown expression type {type(expr)}", rule))
+
+    def _load_rules_from_toml(self, rules_path: pathlib.Path) -> list[Rule] | None:
         """Load rules from project.toml.
 
         Returns all rules defined in project.toml.
         """
+        print(f'rules_path: {rules_path}')
+        if not rules_path.exists():
+            rules_path.parent.mkdir(parents=True, exist_ok=True)
+            rules_path.touch()
         with rules_path.open('rb') as f:
             uf_rules = tomllib.load(f).get('rules', [])
         if not isinstance(uf_rules, list):

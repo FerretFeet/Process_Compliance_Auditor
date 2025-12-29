@@ -25,9 +25,7 @@ class InvalidRuleExc(Exception):
         super().__init__(msg)
 
 class InvalidProjectConfigurationError(Exception):
-    def __init__(self, err: Exception | None = None):
-        self.original_error = err if err else ''
-        msg = f"Invalid project configuration, expect 'project_config' in root/config/project_config.toml: {err}"
+    def __init__(self, msg: str):
         super().__init__(msg)
 
 class ProcessNotCreatedException(Exception):

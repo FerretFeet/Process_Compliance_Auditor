@@ -4,14 +4,23 @@ from typing import Mapping
 import pytest
 from unittest.mock import patch, mock_open
 
+from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model.field import FieldRef
 from core.rules_engine.model.condition import Condition
 from core.rules_engine.model import Operator
 from core.rules_engine.model.rule import Action, Rule, SourceEnum
-from core.rules_engine.rules_engine import RulesEngine, InvalidRuleFilterException
+from core.rules_engine.rules_engine import RulesEngine, InvalidRuleFilterException, FactProvider
 from shared._common.facts import FactSpecProtocol
+from shared.utils import cfg, project_root
 from tests.fixtures.fake_fact_registry import fake_fact_registry
 
+
+FactRegistry.register_raw(
+    "cpu_check",
+    str,
+    SourceEnum.PROCESS,
+    set(Operator),
+)
 
 class MockFact(FactSpecProtocol):
     def __init__(self, typ, allowed_ops=None, allowed_vals=None):
@@ -22,20 +31,11 @@ class MockFact(FactSpecProtocol):
 
 
 @pytest.fixture
-def mock_fact_provider():
+def mock_fact_provider(fake_fact_registry):
     def provider() -> Mapping[str, FactSpecProtocol]:
-        return {
-            "cpu_count": MockFact(int, allowed_ops=["==", ">=", "<="], allowed_vals=None),
+        return FactRegistry.all_facts()
 
-        }
     return provider
-
-
-
-
-
-
-
 
 
 def test_builtin_rules_loaded(sample_rule, mock_fact_provider):
@@ -64,10 +64,11 @@ source = "process"
     m = mock_open(read_data=toml_bytes)
     # Ensure open is in 'rb' mode as expected by RulesEngine
     m.return_value.__enter__.return_value.read = lambda: toml_bytes
+    _path = project_root / cfg.get('rules_path')
 
     with (patch("pathlib.Path.open", m),
           ):
-        engine = RulesEngine(mock_fact_provider, builtin_rules=[], toml_rules_path=pathlib.Path("/fake/path"))
+        engine = RulesEngine(mock_fact_provider, builtin_rules=[], toml_rules_path=_path)
         loaded_rules = engine.get_rules()
 
     # Validate that the rule is loaded

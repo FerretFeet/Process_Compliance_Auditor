@@ -3,6 +3,8 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
+from shared.custom_exceptions import InvalidProjectConfigurationError
+
 
 class ConfigManager:
     def __init__(self):
@@ -11,7 +13,11 @@ class ConfigManager:
         self.get_config()
 
     def get(self, key: str) -> Any:
-        return self._config[key]
+        try:
+            return self._config[key]
+        except KeyError as err:
+            msg = f'{key} not found in config'
+            raise InvalidProjectConfigurationError(msg) from err
 
     def get_config(self, fp: Path = None) -> dict:
         if not self._loaded:
@@ -35,5 +41,16 @@ class ConfigManager:
         """Resets the state for fresh tests."""
         self._config = {}
         self._loaded = False
+
+    def get_file_path(self, key: str) -> Path:
+        path = self.get(key)
+        if path is None:
+            msg = f"{key} not found in config"
+            raise InvalidProjectConfigurationError(msg)
+        if path[0] == "/":
+            msg = f"Invalid path: {path}. Should not start with '/'"
+            raise InvalidProjectConfigurationError(msg)
+        return Path(path)
+
 
 cfg = ConfigManager()

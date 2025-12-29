@@ -5,11 +5,12 @@ from pathlib import Path
 
 def find_project_root(start: Path) -> Path:
     """Return project root path."""
-    root_marker = "src"
-    for parent in [start, *start.parents]:
-        if (parent / root_marker).exists():
-            return parent
-    msg = f"Project root not found, was searching for parent of {root_marker}"
+    root_markers = [".venv", "src", "pyproject.toml"]
+    for marker in root_markers:
+        for parent in [start, *start.parents]:
+            if (parent / marker).exists():
+                return parent
+    msg = f"Project root not found, was searching for parent of one of {root_markers}"
     raise RuntimeError(msg)
 
 

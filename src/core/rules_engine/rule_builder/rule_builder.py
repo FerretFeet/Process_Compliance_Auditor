@@ -19,9 +19,11 @@ rule3 = RuleBuilder.define("flagged_or_vip", "Flagged users or VIP in allowed re
     .then(lambda facts: print(f"Action for {facts['user_id']}"))  # inline action + complex group
 
 """
+from typing import Callable
 
 from core.rules_engine.model.condition import Expression
 from core.rules_engine.model.rule import Action, Rule, ActionType, SourceEnum
+from core.rules_engine.rule_builder.parsers import cond
 
 
 class RuleBuilder:
@@ -58,6 +60,8 @@ class RuleBuilder:
     def when(self, condition: Expression) -> "RuleBuilder":
         if self._condition is not None:
             raise ValueError("when() already called")
+        if isinstance(condition, str):
+            condition = cond(condition)
         self._condition = condition
         return self
 
@@ -73,12 +77,16 @@ class RuleBuilder:
     def and_(self, condition: Expression) -> "RuleBuilder":
         if self._condition is None:
             raise ValueError("and_() called before when()")
+        if isinstance(condition, str):
+            condition = cond(condition)
         self._condition = self._condition & condition
         return self
 
     def or_(self, condition: Expression) -> "RuleBuilder":
         if self._condition is None:
             raise ValueError("or_() called before when()")
+        if isinstance(condition, str):
+            condition = cond(condition)
         self._condition = self._condition | condition
         return self
 
@@ -111,7 +119,7 @@ class RuleBuilder:
         self._mutually_exclusive_group = name
         return self
 
-    def then(self, action: Action | ActionType) -> Rule:
+    def then(self, action: Callable) -> Rule:
         if self._condition is None:
             raise ValueError("Rule has no model")
         if self._name is None:
