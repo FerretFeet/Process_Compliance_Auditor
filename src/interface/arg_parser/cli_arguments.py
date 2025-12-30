@@ -88,7 +88,7 @@ class CliArguments:
             name_or_flags=("-r", "--rules"),
             nargs="+",
             type=str,
-            help="Rule names or ids to test.",
+            help="Rule names or ids to test. Defaults to all available rules.",
         ),
     )
 

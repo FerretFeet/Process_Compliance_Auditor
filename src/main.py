@@ -158,9 +158,12 @@ class Main:
         finally:
             if self.cli_context.create_process_flag:
                 # python created the process
+                print(f'SHUTTING DOWN PROCESSES')
                 self.process_handler.shutdown_all()
             else:
                 # continue process, end python.
+                print(f'REMOVING PROCESSES')
+
                 self.process_handler.remove_all()
 
         return 0

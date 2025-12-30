@@ -33,13 +33,19 @@ class ProcessHandler:
         """Return the list of all processes."""
         return self._processes
 
-    def shutdown_all(self) -> None:
-        """Shutdown all tracked processes."""
+    def shutdown_all(self, *, timeout: float = 5.0, force: bool = False) -> None:
+        """
+        Shutdown all tracked processes safely.
+        """
         for process in self._processes:
             try:
-                process.shutdown()
+                result = process.shutdown(timeout=timeout, force=force)
+                if result:
+                    logger.info("Process %s shutdown successfully", process.pid)
+                else:
+                    logger.warning("Process %s failed to shutdown cleanly", process.pid)
             except Exception as e:
-                logger.warning(f"Failed to shutdown process {process}: {e}")
+                logger.warning("Exception shutting down process %s: %s", process.pid, e)
                 raise
 
     def remove_all(self) -> None:

@@ -75,9 +75,9 @@ class AuditedProcess:
 
     def shutdown(self, *, timeout: float = 5.0, force: bool = False) -> bool:
         """
-        Shut down the process if it was created by this auditor.
+        Shut down this process (and its children) safely.
 
-        Returns True if the process exited, False otherwise.
+        Returns True if all processes exited, False otherwise.
         """
         if not self.created:
             logger.info("Not shutting down external process %s", self.pid)
@@ -88,26 +88,31 @@ class AuditedProcess:
 
         try:
             # Phase 1: graceful termination
-            self.process.terminate()
-            try:
-                self.process.wait(timeout=timeout)
-            except psutil.TimeoutExpired:
-                if not force:
-                    logger.warning(
-                        "Process %s did not exit within %ss",
-                        self.pid,
-                        timeout,
-                    )
-                    return False
+            gone, alive = self._kill_proc_tree(
+                self.pid,
+                sig=signal.SIGTERM,
+                include_parent=True,
+                timeout=timeout,
+            )
 
-                # Phase 2: forced termination
-                logger.warning("Forcing kill of process %s", self.pid)
-                self.process.kill()
-                self.process.wait(timeout=timeout)
+            # Phase 2: forced termination if needed
+            if alive and force:
+                logger.warning("Forcing kill of remaining processes: %s", [p.pid for p in alive])
+                gone2, alive2 = self._kill_proc_tree(
+                    self.pid,
+                    sig=signal.SIGKILL,
+                    include_parent=True,
+                    timeout=timeout,
+                )
+                alive = alive2
+
+            if alive:
+                logger.warning("Some processes did not exit: %s", [p.pid for p in alive])
+                return False
+
+            return True
 
         except psutil.NoSuchProcess:
-            return True
-        else:
             return True
 
     def _kill_proc_tree(
@@ -119,24 +124,23 @@ class AuditedProcess:
         timeout: float | None = None,
         on_terminate: Callable[[psutil.Process], object | None] | None = None,
     ) -> tuple[list[psutil.Process], list[psutil.Process]]:
-        """
-        Kill a process tree with signal "sig" and return a (gone, still_alive) tuple.
-
-        "on_terminate", if specified, is a callback function which is
-        called as soon as a child terminates.
-        """
         if pid is None:
-            msg = "Cannot kill process: PID is None."
-            raise ValueError(msg)
+            raise ValueError("Cannot kill process: PID is None.")
         if pid == os.getpid():
-            msg = "Refusing to kill the current process."
-            raise RuntimeError(msg)
-        parent = psutil.Process(pid)
+            raise RuntimeError("Refusing to kill the current process.")
+
+        try:
+            parent = psutil.Process(pid)
+        except psutil.NoSuchProcess:
+            return [], []
+
         children = parent.children(recursive=True)
         if include_parent:
             children.append(parent)
+
         for p in children:
             with contextlib.suppress(psutil.NoSuchProcess):
                 p.send_signal(sig)
+
         gone, alive = psutil.wait_procs(children, timeout=timeout, callback=on_terminate)
         return gone, alive
