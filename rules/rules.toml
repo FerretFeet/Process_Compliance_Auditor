@@ -1,0 +1,15 @@
+[[rules]]
+id = "RUL-CPU-MEM-001"
+name = "High memory, low CPU"
+description = "Trigger when memory usage is high but CPU usage is low"
+source = "process"
+enabled = true
+priority = 10
+action = "log"
+
+[rules.model]
+operator = "all"
+conditions = [
+  "cpu.percent < 60",
+  "memory.percent > 60",
+]
