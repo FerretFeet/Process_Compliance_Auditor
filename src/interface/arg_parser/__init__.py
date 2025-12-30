@@ -1,1 +1,1 @@
-from .cli_arg_parser import CLI_ArgParser
+from .cli_arg_parser import CliArgParser as CliArgParser

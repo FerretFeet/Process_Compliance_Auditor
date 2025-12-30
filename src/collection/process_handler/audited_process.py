@@ -8,7 +8,7 @@ import psutil
 
 from core.probes.snapshot.process_snapshot.collectors import DEFAULT_COLLECTORS
 from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe
-from shared.custom_exceptions import ProcessNotCreatedException
+from shared.custom_exceptions import ProcessNotCreatedError
 from shared.services import logger
 
 if TYPE_CHECKING:
@@ -54,11 +54,11 @@ class AuditedProcess:
             except psutil.NoSuchProcess:
                 msg = f"Process with PID {self.pid} does not exist."
                 logger.warning(msg)
-                raise ProcessNotCreatedException(msg)
+                raise ProcessNotCreatedError(msg)
             except psutil.AccessDenied:
                 msg = f"Accessed denied for process with PID {self.pid}."
                 logger.warning(msg)
-                raise ProcessNotCreatedException(msg)
+                raise ProcessNotCreatedError(msg)
         else:
             logger.warning("PID is not set. Cannot initialize process.")
 

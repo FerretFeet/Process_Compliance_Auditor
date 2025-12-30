@@ -1,10 +1,28 @@
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from core.rules_engine.eval.condition_evaluator import ConditionEvaluator
 from core.rules_engine.eval.condition_evaluator import ConditionEvaluator as ce
 
 if TYPE_CHECKING:
+    import datetime
+
     from core.rules_engine.model import Rule
+    from core.rules_engine.rules_engine import FactCheck
+
+
+@dataclass
+class FailEvent:
+    """Information about a rule failure."""
+
+    pid: int
+    proc_name: str
+    rule_id: int
+    rule_name: str
+    rule_message: str
+    time_registered: datetime.datetime
+    time_occured: datetime.datetime
+    failed_condition: FactCheck
 
 
 class ComplianceEngine:

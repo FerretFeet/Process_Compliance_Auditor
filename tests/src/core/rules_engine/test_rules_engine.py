@@ -7,7 +7,7 @@ import pytest
 from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model import Operator
 from core.rules_engine.model.rule import SourceEnum
-from core.rules_engine.rules_engine import InvalidRuleFilterException, RulesEngine
+from core.rules_engine.rules_engine import InvalidRuleFilterError, RulesEngine
 from shared._common.facts import FactSpecProtocol
 from shared.utils import cfg, project_root
 
@@ -90,10 +90,10 @@ def test_filter_rules_by_id_and_name(sample_rule, mock_fact_provider):
     filtered2 = engine.match_rules(engine.rules, [sample_rule.name])
     assert sample_rule.id in filtered2
 
-    with pytest.raises(InvalidRuleFilterException):
+    with pytest.raises(InvalidRuleFilterError):
         engine.match_rules(engine.rules, ["nonexistent-id"])
 
-    with pytest.raises(InvalidRuleFilterException):
+    with pytest.raises(InvalidRuleFilterError):
         engine.match_rules(engine.rules, ["nonexistent-name"])
 
 

@@ -66,7 +66,9 @@ class ProcessSnapshot(BaseSnapshot):
         # We use 'cls' so that if you subclass this,
         # it creates the correct child type.
         return cls(
-            pid=proc.pid, name=_safe(proc.name, "unknown"), create_time=_safe(proc.create_time, 0.0),
+            pid=proc.pid,
+            name=_safe(proc.name, "unknown"),
+            create_time=_safe(proc.create_time, 0.0),
         )
 
 

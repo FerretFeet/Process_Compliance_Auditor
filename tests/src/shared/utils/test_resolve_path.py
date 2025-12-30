@@ -50,12 +50,12 @@ def test_resolve_path_multiple_nested_levels():
 def test_resolve_path_missing_attribute_raises():
     proc = Process(cpu=CPU(percent=10.0), pid=999)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"Cannot resolve"):
         resolve_path(proc, "cpu.missing")
 
 
 def test_resolve_path_empty_path_raises():
     proc = Process(cpu=CPU(percent=10.0), pid=999)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"Path cannot be empty."):
         resolve_path(proc, "")

@@ -3,7 +3,7 @@ import pytest
 
 from core.fact_processor.fact_processor import FactProcessor
 from core.rules_engine.model.rule import SourceEnum
-from shared.custom_exceptions import FactNotFoundException
+from shared.custom_exceptions import FactNotFoundError
 
 
 @pytest.fixture
@@ -66,32 +66,13 @@ class TestParseFacts:
         assert result[SourceEnum.PROCESS.value]["nested.key"] == "value"
         assert result[SourceEnum.PROCESS.value]["cpu_count"] == 8
 
-    def test_parse_facts_missing_path_non_strict(self, processor, monkeypatch):
-        processor.get_all_facts()
-
-        monkeypatch.setattr(
-            "core.fact_processor.fact_processor.strict",
-            False,
-        )
-
-        snapshots = {SourceEnum.PROCESS.value: [{"missing": 25}]}
-
-        result = processor.parse_facts(snapshots)
-
-        # All resolutions fail → empty fact sheet
-        assert result[SourceEnum.PROCESS.value] == {}
-
     def test_parse_facts_missing_path_strict_raises(self, processor, monkeypatch):
         processor.get_all_facts()
 
-        monkeypatch.setattr(
-            "core.fact_processor.fact_processor.strict",
-            True,
-        )
 
         snapshots = {SourceEnum.PROCESS.value: [{"age": 25}]}
 
-        with pytest.raises(FactNotFoundException):
+        with pytest.raises(FactNotFoundError):
             processor.parse_facts(snapshots)
 
 
@@ -99,11 +80,7 @@ class TestLogging:
     def test_warning_logged_on_invalid_path(self, processor, monkeypatch):
         processor.get_all_facts()
 
-        monkeypatch.setattr(
-            "core.fact_processor.fact_processor.strict",
-            False,
-        )
 
         snapshots = {SourceEnum.PROCESS.value: [{"age": 40}]}
-
-        processor.parse_facts(snapshots)
+        with pytest.raises(FactNotFoundError):
+            processor.parse_facts(snapshots)

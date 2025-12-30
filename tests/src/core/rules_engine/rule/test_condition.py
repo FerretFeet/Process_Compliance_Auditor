@@ -58,9 +58,9 @@ class TestConditionSet(TestConditionBase):
         assert cs_any.describe() == "(x < '5' OR y >= '10')"
 
     def test_validation_raises(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="requires at least two conditions"):
             ConditionSet.all(self.cond1)  # less than 2 conditions
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="requires at least two conditions"):
             ConditionSet.any(self.cond1)
 
     def test_all_of_any_of_helpers(self):

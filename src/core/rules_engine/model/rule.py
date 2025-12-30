@@ -1,4 +1,4 @@
-""""""
+"""Rule class."""
 
 import hashlib
 from collections.abc import Callable
@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 
 
 class SourceEnum(Enum):
+    """Sources of data. Matches available probes."""
+
     PROCESS = "process"
 
 
@@ -21,16 +23,21 @@ ActionType = Callable[[], None]
 
 @dataclass(frozen=True, slots=True)
 class Action:
+    """The action to perform when a Rule is reported false."""
+
     name: str
     execute: ActionType
     description: str | None = None
 
     def __call__(self) -> None:
+        """Execute the action."""
         self.execute()
 
 
 @dataclass(frozen=True, slots=True)
 class Rule:
+    """A Rule object."""
+
     name: str
     description: str
     condition: Expression
@@ -43,14 +50,18 @@ class Rule:
     metadata: dict = field(default_factory=dict)
     id: str = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """Run post initialization."""
         object.__setattr__(self, "id", self._generate_id())
 
     def _generate_id(self) -> str:
         """
-        Generate a deterministic human-readable ID:
-        - 3-character prefix derived from the group (or default "RUL")
-        - 6-digit numeric portion from SHA256 hash of name + description.
+        Generate a deterministic human-readable ID.
+
+        Returns:
+            - 3-character prefix derived from the group (or default "RUL")
+            - 6-digit numeric portion from SHA256 hash of name + description.
+
         """
         prefix = self.group[:3].upper() if self.group else "RUL"  # default "RUL" = Rule
         combined = f"{self.name}:{self.description}"
@@ -59,9 +70,10 @@ class Rule:
         return f"{prefix}-{numeric_id}"
 
     @classmethod
-    def from_toml(cls, toml_data: dict) -> Rule:
+    def from_toml(cls, toml_data: dict) -> Rule: # noqa: PLR0915, PLR0912, C901
         """
         Create a Rule object from a TOML dictionary.
+
         Expects keys:
           - name
           - description
@@ -74,8 +86,8 @@ class Rule:
           - priority (optional, defaults to 0)
           - metadata (optional, dict).
         """
-        from core.rules_engine.rule_builder.combinators import all_of, any_of
-        from core.rules_engine.rule_builder.parsers import cond
+        from core.rules_engine.rule_builder.combinators import all_of, any_of  # noqa: PLC0415
+        from core.rules_engine.rule_builder.parsers import cond  # noqa: PLC0415
 
         # Required fields
         name = toml_data.get("name")
@@ -102,8 +114,6 @@ class Rule:
             source = []  # default empty list if not specified
         elif isinstance(raw_source, str):
             source = SourceEnum(raw_source)
-        # elif isinstance(raw_source, list):
-        #     source = [SourceEnum(s) if isinstance(s, str) else s for s in raw_source]
         else:
             msg = f"Invalid source type: {type(raw_source)}"
             raise InvalidRuleDataError(msg)
@@ -137,7 +147,7 @@ class Rule:
         raw_action = toml_data.get("action")
         if isinstance(raw_action, str):
 
-            def execute_action(msg=raw_action) -> None:
+            def execute_action() -> None:
                 pass
 
             action = Action(name="Log", execute=execute_action)
@@ -163,12 +173,9 @@ class Rule:
 
     @staticmethod
     def _parse_nested_condition(data: dict) -> Expression:
-        """
-        Recursively parse nested model dictionaries from TOML/JSON into
-        Condition, NotCondition, or ConditionSet objects.
-        """
-        from core.rules_engine.rule_builder.combinators import all_of, any_of
-        from core.rules_engine.rule_builder.parsers import cond
+        """Recursively parse nested model dictionaries from TOML/JSON into Expression objects."""
+        from core.rules_engine.rule_builder.combinators import all_of, any_of  # noqa: PLC0415
+        from core.rules_engine.rule_builder.parsers import cond  # noqa: PLC0415
 
         op = data.get("operator", "all").lower()
         children = data.get("conditions", [])

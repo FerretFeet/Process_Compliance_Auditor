@@ -1,6 +1,7 @@
+"""Rules engine."""
+
 import tomllib
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from core.rules_engine.builtin_rules import ALL_BUILTIN_RULES
@@ -9,29 +10,16 @@ from core.rules_engine.model.condition import Condition, ConditionSet, Expressio
 from shared._common.facts import FactSpecProtocol
 from shared.custom_exceptions import (
     InvalidRuleDataError,
-    InvalidRuleFilterException,
-    RuleWithNoAvailableFactException,
+    InvalidRuleFilterError,
+    RuleWithNoAvailableFactError,
 )
 from shared.services import logger
 from shared.utils import cfg, project_root
 
 if TYPE_CHECKING:
-    import datetime
     import pathlib
 
 FactCheck = Callable[[dict], bool]
-
-
-@dataclass
-class FailEvent:
-    pid: int
-    proc_name: str
-    rule_id: int
-    rule_name: str
-    rule_message: str
-    time_registered: datetime.datetime
-    time_occured: datetime.datetime
-    failed_condition: FactCheck
 
 
 FactProvider = Callable[[], Mapping[str, FactSpecProtocol]]
@@ -51,6 +39,7 @@ class RulesEngine:
         toml_rules_path: pathlib.Path = _rules_file_path,
         builtin_rules: list[Rule] = _builtin_rules,
     ) -> None:
+        """Initialize a RulesEngine object."""
         self.fact_provider = fact_provider
         self.builtin_rules = builtin_rules or []
         self.toml_rules_path = toml_rules_path
@@ -72,7 +61,13 @@ class RulesEngine:
         return self.rules
 
     def validate_rules(self) -> None:
-        """Check that rules correspond to available facts."""
+        """
+        Check that rules correspond to available facts.
+
+        Raises:
+            RuleWithNoAvailableFactError: if no fact is found for a rule's condition.
+
+        """
         if self.fact_provider is None:
             logger.warning(
                 f"No fact_provider defined for {type(self).__name__}. Validation skipped.",
@@ -100,7 +95,7 @@ class RulesEngine:
             for msg, _ in errors:
                 logger.warning(msg)
 
-            raise RuleWithNoAvailableFactException("\n".join(rule.name for _, rule in errors))
+            raise RuleWithNoAvailableFactError("\n".join(rule.name for _, rule in errors))
 
         self.rules = valids
 
@@ -108,13 +103,10 @@ class RulesEngine:
         self,
         expr: Expression,
         available_facts: dict[str, FactSpecProtocol],
-        rule,
+        rule: Rule,
         errors: list,
     ) -> None:
-        """
-        Recursively validate a rule Expression.
-        Appends to `errors` on failure.
-        """
+        """Recursively validate a rule Expression, appends to `errors` on failure."""
         # ── Leaf ──────────────────────────────────────────────
         if isinstance(expr, Condition):
             path = expr.field.path
@@ -133,7 +125,10 @@ class RulesEngine:
 
             if fact.allowed_operators and expr.operator not in fact.allowed_operators:
                 failed = True
-                msg += f"Condition operator mismatch. Expected {fact.allowed_operators}, got {expr.operator}. "
+                msg += (
+                    f"Condition operator mismatch. Expected {fact.allowed_operators}, "
+                    f"got {expr.operator}. "
+                )
 
             if fact.allowed_values and expr.value not in fact.allowed_values:
                 failed = True
@@ -190,6 +185,12 @@ class RulesEngine:
             filters: filters to apply. Can be rule_builder.id or rule_builder.name
                 If filter is None, return all rules.
 
+        Returns:
+            dict rule.path : Rule
+
+        Raises:
+            InvalidRuleFilterError: if filter is invalid.
+
         """
         if filters is None:
             return rules
@@ -202,55 +203,9 @@ class RulesEngine:
                     rule = self.rules_name_lookup[_filter]
                     active_rules[rule.id] = rule
                 except KeyError as err:
-                    msg = f"Invalid rule_builder passed to filter: {"name" if isinstance(_filter, str) else "id"}: {_filter}"
-                    raise InvalidRuleFilterException(msg) from err
+                    msg = (
+                        f"Invalid rule_builder passed to filter: "
+                        f"{"name" if isinstance(_filter, str) else "id"}: {_filter}"
+                    )
+                    raise InvalidRuleFilterError(msg) from err
         return active_rules
-
-    # def _resolve_condition(self, rule: Rule) -> FactCheck:
-    #     """Resolve a rule_builder model."""
-    #     if rule.evaluator:
-    #         return rule.evaluator
-    #     elif rule.parse_condition():
-    #         return rule.parse_condition()
-    #     else:
-    #         msg = f'Expected evaluator or parse model, got {type(rule)}'
-    #         raise InvalidRuleExc(msg)
-    # def _process_rule_violation(self, facts: FactSheet, rule: Rule, model: FactCheck) -> FailEvent:
-    #     """Perform actions for a rule_builder violation detection."""
-    #     result = FailEvent(
-    #         pid=facts.get('pid'),
-    #         proc_name=facts.get('name'),
-    #         rule_id=rule.id,
-    #         rule_name=rule.name,
-    #         rule_message=rule.message,
-    #         time_registered=datetime.datetime.now(),
-    #         time_occured=facts.get('snapshot_time'),
-    #         failed_condition=model
-    #     )
-    #     msg = (f'Process Failed Compliance [PID: {facts.get('pid')}, NAME: {facts.get('name')}]'
-    #            f'\n\tRule violated: [ID: {rule.id}], NAME: {rule.name}]:'
-    #            f'\n\t\tCondition: {str(model)}'
-    #            f'\n\t\tResult: {str(result)}')
-    #     logger.info(msg)
-    #     return result
-    #
-    # def check_compliance(self, fact_sheets: list[FactSheet], active_rules: dict[int, Rule])\
-    #         -> list[dict[int, list[FailEvent]]]:
-    #     """Compare facts to rules."""
-    #     final_result = []
-    #     for facts in fact_sheets:
-    #         result_set = []
-    #         for rule in active_rules.values():
-    #             # Rule is derived from info or from evaluator
-    #             model = self._resolve_condition(rule)
-    #
-    #             result = model(facts.as_dict())
-    #             if result: continue
-    #             result_set.append(self._process_rule_violation(facts, rule, model))
-    #
-    #         final_result.append({facts.get('pid'): result_set})
-    #     return final_result
-
-
-if __name__ == "__main__":
-    rules_engine = RulesEngine()

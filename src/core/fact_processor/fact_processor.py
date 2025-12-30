@@ -2,18 +2,12 @@ from typing import TYPE_CHECKING, Any
 
 from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model.rule import SourceEnum
-from shared.custom_exceptions import FactNotFoundException
+from shared.custom_exceptions import FactNotFoundError
 from shared.services import logger
-from shared.utils import cfg
 from shared.utils.resolve_path import resolve_path
 
 if TYPE_CHECKING:
     from shared._common.facts import FactSpec
-
-# FIXME: figure out if strict is something we want to keep
-# If so, add as parameter to function and fix tests
-# If no, remove from function and fix tests
-strict = cfg.get("strict")
 
 
 class FactProcessor:
@@ -66,7 +60,7 @@ class FactProcessor:
             dict[str, dict[str, Any]]: A dict of key (source) value FactSheet
 
         Exception:
-            FactNotFoundException: if strict and no data can be found for a particular fact.
+            FactNotFoundException: if no data can be found for a particular fact.
 
         """
         factsheets = {}
@@ -85,8 +79,6 @@ class FactProcessor:
 
                     except ValueError as err:
                         msg = f"{fact.path} is not a valid path for {type(snapshot).__name__}"
-                        logger.warning(msg)
-                        if strict:
-                            raise FactNotFoundException(msg) from err
+                        raise FactNotFoundError(msg) from err
 
         return factsheets

@@ -1,55 +1,33 @@
 """Custom Exceptions."""
 
 
-class InvalidCLI_ParserConfigurationError(Exception):
+class InvalidCliParserConfigurationError(Exception):
     """Raised when CLI parser is used incorrectly."""
 
-    def __init__(self, msg: str) -> None:
-        super().__init__(msg)
 
-
-class InvalidRuleFilterException(Exception):
+class InvalidRuleFilterError(Exception):
     """Raised when a filter does not match any given rule_builder."""
 
-    def __init__(self, msg: str) -> None:
-        super().__init__(msg)
 
-
-class InvalidRuleException(Exception):
-    def __init__(self, err: Exception, rule_id: int, msg: str = "Invalid rule_builder") -> None:
-        self.rule = rule_id
-        self.original_error = err
-        full_msg = f"{msg}: {rule_id}"
-        if err:
-            full_msg += f" ({err})"
-        super().__init__(full_msg)
-
-
-class InvalidRuleExc(Exception):
-    def __init__(self, msg: str) -> None:
-        super().__init__(msg)
+class InvalidRuleError(Exception):
+    """Raised when a rule builder entry is invalid."""
 
 
 class InvalidProjectConfigurationError(Exception):
-    def __init__(self, msg: str) -> None:
-        super().__init__(msg)
+    """Raised when a project configuration is used incorrectly or is missing."""
 
 
-class ProcessNotCreatedException(Exception):
-    def __init__(self, msg: str) -> None:
-        super().__init__(msg)
+class ProcessNotCreatedError(Exception):
+    """Raised when a process is not created or was not created."""
 
 
 class InvalidRuleDataError(Exception):
     """Raised when a TOML rule_builder entry is invalid."""
 
 
-
-class RuleWithNoAvailableFactException(Exception):
-    def __init__(self, msg: str) -> None:
-        super().__init__(msg)
+class RuleWithNoAvailableFactError(Exception):
+    """Raised when a rule's condition does not meet any available fact."""
 
 
-class FactNotFoundException(Exception):
-    def __init__(self, msg: str) -> None:
-        super().__init__(msg)
+class FactNotFoundError(Exception):
+    """Raised when a Fact is not found or was not found."""

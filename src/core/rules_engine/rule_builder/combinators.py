@@ -1,3 +1,4 @@
+"""Helper functions for grouping conditions when building rules."""
 from core.rules_engine.model.condition import ConditionSet, Expression, NotCondition
 
 
@@ -12,4 +13,5 @@ def any_of(*conditions: Expression) -> ConditionSet:
 
 
 def not_(condition: Expression) -> NotCondition:
+    """Return a negative condition."""
     return ~condition

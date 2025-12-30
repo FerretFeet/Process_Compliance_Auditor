@@ -1,3 +1,4 @@
+import re
 from dataclasses import MISSING, fields
 
 import pytest
@@ -5,7 +6,7 @@ import pytest
 from core.rules_engine.model import GroupOperator, Operator
 from core.rules_engine.model.condition import Condition, ConditionSet, NotCondition
 from core.rules_engine.model.field import FieldRef
-from core.rules_engine.model.rule import Action, Rule
+from core.rules_engine.model.rule import Action, Rule, SourceEnum
 from core.rules_engine.rule_builder.combinators import all_of, any_of, not_
 from core.rules_engine.rule_builder.parsers import cond
 from core.rules_engine.rule_builder.rule_builder import RuleBuilder
@@ -40,6 +41,7 @@ class TestCondParsing(TestRuleBuilderBase):
         rule = (
             RuleBuilder()
             .define("test", "test_check")
+            .from_(SourceEnum.PROCESS.value)
             .when(cond("nested.key > 1"))
             .then(self.grant_access)
         )
@@ -48,7 +50,7 @@ class TestCondParsing(TestRuleBuilderBase):
         assert rule.condition.field.evaluate(facts) == "2"
 
     def test_cond_parsing_invalid_raises(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Could not parse expression"):
             cond("invalid expression")
 
 
@@ -58,19 +60,20 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         rule = (
             RuleBuilder()
             .define("adult_check", "User must be adult")
+            .from_(SourceEnum.PROCESS.value)
             .when(self.adult)
             .then(self.block_access)
         )
         assert isinstance(rule, Rule)
         assert rule.name == "adult_check"
         assert rule.condition == self.adult
-        facts = {}
         rule.action()
 
     def test_and_or_chaining(self):
         rule = (
             RuleBuilder()
             .define("special_access", "Adult users with premium or VIP")
+            .from_(SourceEnum.PROCESS.value)
             .when(self.adult)
             .and_(self.premium)
             .or_(self.vip)
@@ -92,6 +95,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         rule = (
             RuleBuilder()
             .define("nested_rule", "Adult AND (premium OR VIP)")
+            .from_(SourceEnum.PROCESS.value)
             .when(all_of(self.adult, any_of(self.premium, self.vip)))
             .then(self.grant_access)
         )
@@ -100,7 +104,6 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
             rule.condition.group_operator
             == ConditionSet.all(self.adult, any_of(self.premium, self.vip)).group_operator
         )
-        facts = {}
         rule.action()
 
     def test_inline_lambda_action(self):
@@ -109,11 +112,11 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         rule = (
             RuleBuilder()
             .define("flagged_user", "Inline lambda")
+            .from_(SourceEnum.PROCESS.value)
             .when(self.adult)
             .then(lambda : captured.update({"executed": True}))
         )
         assert isinstance(rule.action, Action)
-        facts = {}
         rule.action()
         assert captured.get("executed") is True
 
@@ -121,6 +124,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         rule = (
             RuleBuilder()
             .define("vip_region_access", "Adult VIP/Premium in allowed regions")
+            .from_(SourceEnum.PROCESS.value)
             .when(self.adult)
             .and_(any_of(self.vip, self.premium))
             .and_(self.region_allowed)
@@ -139,16 +143,16 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
 
     def test_errors_for_invalid_chaining(self):
         builder = RuleBuilder().define("name", "desc")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=re.escape("and_() called before when()")):
             builder.and_(self.adult)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=re.escape("or_() called before when()")):
             builder.or_(self.adult)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Rule has no model"):
             RuleBuilder().then(self.grant_access)  # no model
 
     def test_when_called_twice_raises(self):
         builder = RuleBuilder().define("name", "desc").when(self.adult)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=re.escape("when() already called")):
             builder.when(self.premium)
 
     def test_not_condition_in_rulebuilder(self):
@@ -156,12 +160,12 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         rule = (
             RuleBuilder()
             .define("negate_age", "User must NOT be adult")
+            .from_(SourceEnum.PROCESS.value)
             .when(not_(self.adult))
             .then(self.grant_access)
         )
 
         # The model should be a NotCondition wrapping the original Condition
-        from core.rules_engine.model.condition import Condition, NotCondition
 
         assert isinstance(rule.condition, NotCondition)
         assert isinstance(rule.condition.condition, Condition)
@@ -175,6 +179,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         rule = (
             RuleBuilder()
             .define("complex_not_rule", "Adult NOT VIP in allowed regions")
+            .from_(SourceEnum.PROCESS.value)
             .when(self.adult)
             .and_(not_(self.vip))
             .and_(self.region_allowed)
@@ -199,7 +204,8 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         assert not_conditions[0].condition == self.vip
 
         # Description should reflect the NOT
-        expected_describe = f"({self.adult.describe()} AND NOT ({self.vip.describe()}) AND {self.region_allowed.describe()})"
+        expected_describe = (f"({self.adult.describe()} AND NOT ({self.vip.describe()})"
+                             f" AND {self.region_allowed.describe()})")
         assert rule.condition.describe() == expected_describe
 
 
@@ -213,6 +219,7 @@ class TestRuleBuilderGroups:
         rule = (
             RuleBuilder()
             .define("test_rule_group", "Testing group")
+            .from_(SourceEnum.PROCESS.value)
             .when(adult)
             .group("membership")
             .then(grant_access)
@@ -224,6 +231,7 @@ class TestRuleBuilderGroups:
         rule = (
             RuleBuilder()
             .define("test_rule_me_group", "Testing mutually exclusive group")
+            .from_(SourceEnum.PROCESS.value)
             .when(adult)
             .mutually_exclusive_group("access_level")
             .then(grant_access)
@@ -235,6 +243,7 @@ class TestRuleBuilderGroups:
         rule = (
             RuleBuilder()
             .define("test_rule_both", "Testing both group attributes")
+            .from_(SourceEnum.PROCESS.value)
             .when(adult)
             .group("membership")
             .mutually_exclusive_group("access_level")
@@ -260,7 +269,7 @@ class TestRuleBuilderAllAttributesDynamic:
         rule = (
             RuleBuilder()
             .define("test_rule_dynamic", "Testing full attribute coverage")
-            .source("process")
+            .from_("process")
             .when(adult)
             .group("membership")
             .mutually_exclusive_group("access_level")
@@ -284,8 +293,13 @@ class TestRuleBuilderAllAttributesDynamic:
             else:
                 default_value = None  # no default
 
-            # Fail if value is None or equal to default
-            assert value is not None and value != default_value, (
+            # Fail if value is None
+            assert value is not None, (
+                f"Rule model '{field_info.name}' is not set via builder: value is None"
+            )
+
+            # Fail if value equals the default
+            assert value != default_value, (
                 f"Rule model '{field_info.name}' is not set via builder: "
                 f"value is {value}, default is {default_value}"
             )

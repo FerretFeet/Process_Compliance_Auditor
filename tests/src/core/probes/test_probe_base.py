@@ -15,7 +15,7 @@ class TestGenericProbe:
     def mock_extractor(self):
         """Mocked SnapshotExtractor."""
         extractor = MagicMock()
-        extractor.apply.side_effect = lambda source, snap: snap
+        extractor.apply.side_effect = lambda source, snap: snap # noqa: ARG005
         return extractor
 
     @pytest.fixture
@@ -45,7 +45,8 @@ class TestGenericProbe:
         mock_extractor.apply.return_value = final_snapshot
 
         probe = GenericProbe(
-            name="test-probe", source=mock_source, extractor=mock_extractor, initializer=initializer,
+            name="test-probe", source=mock_source,
+            extractor=mock_extractor, initializer=initializer,
         )
 
         result = probe.collect()

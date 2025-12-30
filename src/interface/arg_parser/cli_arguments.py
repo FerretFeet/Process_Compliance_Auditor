@@ -1,10 +1,11 @@
 """Cli argument definitions and methods."""
 
 import argparse
+import typing
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from shared.custom_exceptions.custom_exception import InvalidCLI_ParserConfigurationError
+from shared.custom_exceptions.custom_exception import InvalidCliParserConfigurationError
 from shared.utils import cfg
 
 if TYPE_CHECKING:
@@ -12,10 +13,6 @@ if TYPE_CHECKING:
 
 default_interval = cfg.get("default_process_check_interval")
 default_time_limit = cfg.get("default_process_time_limit")
-
-# def _rule_type(x):
-#     """Convert to int if eligible."""
-#     return int(x) if x.isdigit() else x
 
 
 @dataclass
@@ -88,17 +85,32 @@ class CliArguments:
             f" Default is {default_interval}.",
         ),
         _CliArgument(
-            name_or_flags=("-r", "--rules"), nargs="+", type=str, help="Rule names or ids to test.",
+            name_or_flags=("-r", "--rules"),
+            nargs="+",
+            type=str,
+            help="Rule names or ids to test.",
         ),
     )
 
-    mutually_exclusive_groups: list[MutExGroup] = [
+    mutually_exclusive_groups: typing.ClassVar[list[MutExGroup]] = [
         MutExGroup(["pid", "--create-process"], required=True),
     ]
 
     @staticmethod
     def get_arg_by_name_or_flag(flag: str) -> _CliArgument:
-        """Return an argument matching the flag passed in."""
+        """
+        Return an argument matching the flag passed in.
+
+        Args:
+            flag (str): The flag passed in
+
+        Returns:
+            _CliArgument: The argument matching the flag
+
+        Raises:
+            InvalidCliParserConfigurationError: If the flag is not valid.
+
+        """
         for arg in CliArguments.cli_arguments:
             if isinstance(arg.name_or_flags, str):
                 if flag == arg.name_or_flags:
@@ -108,6 +120,6 @@ class CliArguments:
                     return arg
             else:
                 msg = "Expected arg.name_or_flags to be str or tuple/list/set"
-                raise InvalidCLI_ParserConfigurationError(msg)
+                raise InvalidCliParserConfigurationError(msg)
         msg = f"flag not found in cli arguments: {flag}"
-        raise InvalidCLI_ParserConfigurationError(msg)
+        raise InvalidCliParserConfigurationError(msg)

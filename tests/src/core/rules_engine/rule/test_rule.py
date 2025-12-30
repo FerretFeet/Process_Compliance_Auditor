@@ -5,7 +5,7 @@ from core.rules_engine.model import GroupOperator, Operator
 from core.rules_engine.model.condition import Condition, ConditionSet
 from core.rules_engine.model.field import FieldRef
 from core.rules_engine.model.rule import Action, Rule, SourceEnum
-from shared.utils import cfg
+from shared.custom_exceptions import InvalidRuleDataError, InvalidRuleError
 
 
 class TestActionBase:
@@ -47,7 +47,6 @@ class TestRule(TestActionBase):
         )
 
     def test_raises_strict_and_missing_fact(self):
-        cfg.override("strict", True)
         toml_data = {
             "name": "adult_check",
             "description": "User must be an adult",
@@ -57,13 +56,12 @@ class TestRule(TestActionBase):
             "source": "process",
         }
         with pytest.raises(
-            ValueError,
+            InvalidRuleError,
             match=r"Could not find field '[a-zA-Z]+' for expression '.+' in fact registry\.",
         ):
             Rule.from_toml(toml_data)
 
     def test_raises_value_cast_mismatch(self, fake_fact_registry):
-        cfg.override("strict", True)
         toml_data = {
             "name": "adult_check",
             "description": "User must be an adult",
@@ -73,7 +71,7 @@ class TestRule(TestActionBase):
             "source": "process",
         }
         with pytest.raises(
-            ValueError,
+            InvalidRuleError,
             match=r"Declared type '[a-zA-Z]+' does not match fact registry type '.+' for '.+'\.",
         ):
             Rule.from_toml(toml_data)
@@ -184,5 +182,5 @@ class TestRule(TestActionBase):
             "action": "Log something",
         }
 
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidRuleDataError):
             Rule.from_toml(toml_data)

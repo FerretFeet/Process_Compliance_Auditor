@@ -1,7 +1,7 @@
 import pytest
 
 from interface.arg_parser.cli_arguments import CliArguments, MutExGroup, _CliArgument
-from shared.custom_exceptions import InvalidCLI_ParserConfigurationError
+from shared.custom_exceptions import InvalidCliParserConfigurationError
 
 
 class TestCliArgumentDataclass:
@@ -39,7 +39,7 @@ class TestCliArguments:
         assert "--create-process" in arg.name_or_flags
 
     def test_get_arg_by_name_or_flag_invalid_flag_raises(self):
-        with pytest.raises(InvalidCLI_ParserConfigurationError):
+        with pytest.raises(InvalidCliParserConfigurationError):
             CliArguments.get_arg_by_name_or_flag("--not-a-flag")
 
 

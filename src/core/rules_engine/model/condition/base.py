@@ -61,7 +61,8 @@ class ConditionSet:
 
     @staticmethod
     def _flatten(
-        operator: GroupOperator, conditions: Iterable[Expression],
+        operator: GroupOperator,
+        conditions: Iterable[Expression],
     ) -> tuple[Expression, ...]:
         flattened = []
         for c in conditions:

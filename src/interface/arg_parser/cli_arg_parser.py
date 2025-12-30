@@ -5,14 +5,13 @@ from dataclasses import dataclass
 from typing import Any
 
 from interface.arg_parser.cli_arguments import CliArguments, _CliArgument
-from shared.custom_exceptions import InvalidCLI_ParserConfigurationError
 
 default_check_interval = "default_process_check_interval"
 
 defl_cli_args: tuple[_CliArgument] = CliArguments.cli_arguments
 
 
-class CLI_ArgParser:
+class CliArgParser:
     """Argument parser for the application's CLI arguments."""
 
     def __init__(self, cli_arguments: tuple[_CliArgument] = defl_cli_args) -> None:
@@ -34,7 +33,7 @@ class CLI_ArgParser:
 
         self.args = self.parser.parse_args()
 
-    def _get_argument(self, name_or_flag: str) -> Any | None:
+    def _get_argument(self, name_or_flag: str) -> Any | None:  # noqa: ANN401
         """
         Return the argument for the given CLI argument.
 
@@ -57,18 +56,7 @@ class CLI_ArgParser:
         If True, this application is responsible for the audited process.
         If False, this application attached to an independent process.
         """
-        if self._get_argument("pid"):
-            return False
-        if self._get_argument("create-process"):
-            return True
-        # FIXME
-        # This line should be unnecessary due to mut-ex group
-        # Dec 21
-        msg = (
-            "Expected either a process ID as first positional argument"
-            ' or "create-process" argument.'
-        )
-        raise InvalidCLI_ParserConfigurationError(msg)
+        return not self._get_argument("pid")
 
     def get_process_args(self) -> list[str] | int:
         """Return either the process ID or the commands to begin the process."""
@@ -90,7 +78,8 @@ class CLI_ArgParser:
         """Return the time interval between audits for this application, in seconds."""
         return self._get_argument("interval")
 
-    def get_context(self):
+    def get_context(self) -> CliContext:
+        """Return the full context for this application that is provided by cli args."""
         return CliContext(
             process=self.get_process_args(),
             create_process_flag=self.get_create_process_flag(),
@@ -102,6 +91,8 @@ class CLI_ArgParser:
 
 @dataclass
 class CliContext:
+    """Context provided by the application's CLI arguments."""
+
     process: list[str] | int
     create_process_flag: bool
     interval: int
@@ -110,4 +101,4 @@ class CliContext:
 
 
 if __name__ == "__main__":
-    cli_arg_parser = CLI_ArgParser()
+    cli_arg_parser = CliArgParser()

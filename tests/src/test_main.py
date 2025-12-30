@@ -8,7 +8,7 @@ from core.fact_processor.fact_processor import FactProcessor
 from core.fact_processor.fact_registry import FactRegistry
 from core.rules_engine.model.rule import Action, Rule, SourceEnum
 from core.rules_engine.rule_builder.parsers import cond
-from main import Main
+from main import AppContext, EngineBundle, Main, RuntimeBundle
 from shared._common.operators import Operator
 
 
@@ -62,7 +62,7 @@ class TestMainE2E:
 
         # CLI context
         class FakeCLI:
-            rules = []
+            rules: typing.ClassVar = []
             process = 123
             time_limit = 0.01
             interval = 0.01
@@ -77,12 +77,18 @@ class TestMainE2E:
         MockProcess.return_value = mock_proc
 
         main = Main(
-            rules_engine=self.fake_rules_engine,
-            compliance_engine=self.fake_compliance_engine,
-            cli_context=self.cli_context,
-            process_handler=self.fake_process_handler,
-            snapshot_manager=self.fake_snapshot_manager,
-            fact_processor=self.fake_fact_processor,  # inject fake processor
+            engines=EngineBundle(
+                rules=self.fake_rules_engine,
+                compliance=self.fake_compliance_engine,
+                facts=self.fake_fact_processor,
+            ),
+            runtime=RuntimeBundle(
+                process_handler=self.fake_process_handler,
+                snapshot_manager=self.fake_snapshot_manager,
+            ),
+            context=AppContext(
+                cli=self.cli_context,
+            ),
         )
 
         result = main.main()
@@ -133,7 +139,7 @@ class TestMainE2E:
             name="AgeRule",
             description="Checks age",
             condition=cond("age == 42"),
-            action=Action(name="noop", execute=lambda facts: None),
+            action=Action(name="noop", execute=lambda : None),
             source=SourceEnum.PROCESS,
         )
 
@@ -141,7 +147,7 @@ class TestMainE2E:
             name="AgeRule",
             description="Checks age",
             condition=cond("age == 50"),
-            action=Action(name="noop", execute=lambda facts: None),
+            action=Action(name="noop", execute=lambda : None),
             source=SourceEnum.PROCESS,
         )
 
@@ -168,13 +174,20 @@ class TestMainE2E:
         cli_context = FakeCLI()
 
         main = Main(
-            rules_engine=fake_rules_engine,
-            compliance_engine=compliance_engine,
-            cli_context=cli_context,
-            process_handler=fake_process_handler,
-            snapshot_manager=fake_snapshot_manager,
-            fact_processor=fact_processor,
+            engines=EngineBundle(
+                rules=fake_rules_engine,
+                compliance=compliance_engine,
+                facts=self.fake_fact_processor,
+            ),
+            runtime=RuntimeBundle(
+                process_handler=fake_process_handler,
+                snapshot_manager=fake_snapshot_manager,
+            ),
+            context=AppContext(
+                cli=cli_context,
+            ),
         )
+
 
         # Patch RunCondition to run the loop exactly once
         with patch.object(main, "run_condition", autospec=True) as mock_rc:

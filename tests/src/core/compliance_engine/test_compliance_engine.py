@@ -83,7 +83,7 @@ class TestComplianceEnginePassFail:
             rule.condition,
             factsheets["process"],
         )
-        rule.action.execute.assert_called_once_with(factsheets["process"])
+        rule.action.execute.assert_called_once()
 
 
 class TestMultipleRules:

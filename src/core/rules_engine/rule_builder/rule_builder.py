@@ -21,7 +21,6 @@ rule3 = RuleBuilder.define("flagged_or_vip", "Flagged users or VIP in allowed re
 
 """
 
-
 from typing import TYPE_CHECKING
 
 from core.rules_engine.model.rule import Action, Rule, SourceEnum
@@ -41,7 +40,7 @@ class RuleBuilder:
     rule_builder = (
         RuleBuilder()
         .define("adult_rule", "User must be adult")
-        .source('process')
+        .from('process')
         .when(model)
         .and_(model)
         .or_(model)
@@ -50,6 +49,7 @@ class RuleBuilder:
     """
 
     def __init__(self) -> None:
+        """Prepare state data containers."""
         self._priority = 0
         self._name = None
         self._description = None
@@ -62,11 +62,13 @@ class RuleBuilder:
         self._metadata = {}
 
     def define(self, name: str, description: str) -> RuleBuilder:
+        """Set the name and description of the rule."""
         self._name = name
         self._description = description
         return self
 
     def when(self, condition: Expression) -> RuleBuilder:
+        """Begin defining the condition for the rule."""
         if self._condition is not None:
             msg = "when() already called"
             raise ValueError(msg)
@@ -75,7 +77,14 @@ class RuleBuilder:
         self._condition = condition
         return self
 
-    def source(self, source: str) -> RuleBuilder:
+    def from_(self, source: str) -> RuleBuilder:
+        """
+        Define the source the rule will apply to.
+
+        Raises:
+            ValueError: If it has already been defined.
+
+        """
         if isinstance(source, str):
             source = SourceEnum(source)
         if self._source is None:
@@ -86,6 +95,13 @@ class RuleBuilder:
         return self
 
     def and_(self, condition: Expression) -> RuleBuilder:
+        """
+        Connect the previous condition to this condition with And.
+
+        Raises:
+            ValueError: if not called with enough conditions.
+
+        """
         if self._condition is None:
             msg = "and_() called before when()"
             raise ValueError(msg)
@@ -95,6 +111,13 @@ class RuleBuilder:
         return self
 
     def or_(self, condition: Expression) -> RuleBuilder:
+        """
+        Connect the previous condition to this condition with Or.
+
+        Raises:
+            ValueError: if not called with enough conditions.
+
+        """
         if self._condition is None:
             msg = "or_() called before when()"
             raise ValueError(msg)
@@ -113,12 +136,13 @@ class RuleBuilder:
         self._priority = priority
         return self
 
-    def metadata(self, **kwargs) -> RuleBuilder:
+    def metadata(self, **kwargs: str) -> RuleBuilder:
         """Set arbitrary key/value metadata on the rule."""
         self._metadata.update(kwargs)
         return self
 
     def set_metadata(self, data: dict) -> RuleBuilder:
+        """Set rule metadata."""
         self._metadata = dict(data)
         return self
 
@@ -133,11 +157,21 @@ class RuleBuilder:
         return self
 
     def then(self, action: Callable) -> Rule:
+        """
+        Define the action to be executed when the rule is untrue, create the rule.
+
+        Raises:
+            ValueError: if rule is missing necessary assignments.
+
+        """
         if self._condition is None:
             msg = "Rule has no model"
             raise ValueError(msg)
         if self._name is None:
             msg = "Rule has no name"
+            raise ValueError(msg)
+        if self._source is None:
+            msg = "Rule has no source"
             raise ValueError(msg)
         if callable(action):
             action = Action(name="Inline", execute=action)

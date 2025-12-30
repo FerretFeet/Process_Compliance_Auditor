@@ -4,4 +4,3 @@ default_process_time_limit = "None"
 
 rules_path='rules/rules.toml'
 
-strict=true

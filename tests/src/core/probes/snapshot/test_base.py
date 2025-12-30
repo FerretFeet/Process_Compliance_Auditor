@@ -59,10 +59,11 @@ class TestBaseSnapshot:
 
     def test_subclass_must_implement_from_source(self):
         """Verify that a subclass without from_source cannot be instantiated."""
-        with pytest.raises(TypeError):
 
-            @dataclass
-            class IncompleteSnapshot(BaseSnapshot):
-                pass
+        @dataclass
+        class IncompleteSnapshot(BaseSnapshot):
+            pass
+
+        with pytest.raises(TypeError):
 
             IncompleteSnapshot()

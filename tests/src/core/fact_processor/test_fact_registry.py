@@ -118,7 +118,7 @@ class TestFactRegistryValidate:
             allowed_operators={Operator.GT},
         )
 
-        with pytest.raises(TypeError, match="Expected process.threads"):
+        with pytest.raises(TypeError, match=r"Expected process.threads"):
             FactRegistry.validate("process.threads", "not-an-int")
 
 
