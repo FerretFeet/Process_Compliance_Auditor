@@ -162,7 +162,7 @@ conditions = [
 3. Use the RuleBuilder to create new rules.
 4. Ensure your new rule is imported in the ```__init__.py``` file under ```ALL_BUILTIN_RULES```.
 
-Example:
+Example Rule:
 ```
 cpu_and_memory_in_bounds = (
     RuleBuilder()
