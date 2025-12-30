@@ -34,9 +34,7 @@ class ProcessHandler:
         return self._processes
 
     def shutdown_all(self, *, timeout: float = 5.0, force: bool = False) -> None:
-        """
-        Shutdown all tracked processes safely.
-        """
+        """Shutdown all tracked processes safely."""
         for process in self._processes:
             try:
                 result = process.shutdown(timeout=timeout, force=force)

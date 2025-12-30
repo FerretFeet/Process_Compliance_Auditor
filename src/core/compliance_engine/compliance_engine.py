@@ -51,7 +51,6 @@ class ComplianceEngine:
             "failed": [],
         }
         for rule in rules.values():
-            print(rule)
             factgroup = factsheets[rule.source.value]
             if not self.condition_evaluator.evaluate(rule.condition, factgroup):
                 rule.action.execute()

@@ -88,7 +88,7 @@ class AuditedProcess:
 
         try:
             # Phase 1: graceful termination
-            gone, alive = self._kill_proc_tree(
+            gone, alive = self._kill_proc_tree(  # noqa: RUF059
                 self.pid,
                 sig=signal.SIGTERM,
                 include_parent=True,
@@ -97,22 +97,28 @@ class AuditedProcess:
 
             # Phase 2: forced termination if needed
             if alive and force:
-                logger.warning("Forcing kill of remaining processes: %s", [p.pid for p in alive])
-                gone2, alive2 = self._kill_proc_tree(
+                logger.warning(
+                    "Forcing kill of remaining processes: %s",
+                    [p.pid for p in alive],
+                )
+                _, alive = self._kill_proc_tree(
                     self.pid,
                     sig=signal.SIGKILL,
                     include_parent=True,
                     timeout=timeout,
                 )
-                alive = alive2
-
-            if alive:
-                logger.warning("Some processes did not exit: %s", [p.pid for p in alive])
-                return False
-
-            return True
 
         except psutil.NoSuchProcess:
+            return True
+
+        else:
+            if alive:
+                logger.warning(
+                    "Some processes did not exit: %s",
+                    [p.pid for p in alive],
+                )
+                return False
+
             return True
 
     def _kill_proc_tree(
@@ -125,9 +131,11 @@ class AuditedProcess:
         on_terminate: Callable[[psutil.Process], object | None] | None = None,
     ) -> tuple[list[psutil.Process], list[psutil.Process]]:
         if pid is None:
-            raise ValueError("Cannot kill process: PID is None.")
+            msg = "Cannot kill process: PID is None."
+            raise ValueError(msg)
         if pid == os.getpid():
-            raise RuntimeError("Refusing to kill the current process.")
+            msg = "Refusing to kill the current process."
+            raise RuntimeError(msg)
 
         try:
             parent = psutil.Process(pid)

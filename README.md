@@ -1,5 +1,8 @@
 # Compliance Engine
 
+![Python](https://img.shields.io/badge/Python-3.14-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 A modular, rules-based process compliance auditing tool written in Python.
 
 The engine monitors running processes,
@@ -132,7 +135,7 @@ Two options are available for defining new rules:
 
 **Option 1**
 1. Navigate to project_root/rules/rules.toml
-2. Define new rules using the existing rules as a template.
+2. Add your rule using the toml format.
 
 Example Rule:
 ```
@@ -161,13 +164,13 @@ conditions = [
 
 Example:
 ```
-rule4 = (
+cpu_and_memory_in_bounds = (
     RuleBuilder()
-    .define("memory percent and cpu percent 2", "Cpu usage below memory usage above")
-    .from_("process")
-    .when("cpu.percent < 60")
-    .and_("memory.percent > 60")
-    .then(lambda: print("Rule 4 Failed"))  # noqa: T201
+        .define("memory percent and cpu percent 2", "Cpu usage below memory usage above")
+        .from_("process")
+        .when("cpu.percent < 60")
+        .and_("memory.percent > 60")
+        .then(lambda: print("Rule 4 Failed"))  # noqa: T201
 )
 ```
 
