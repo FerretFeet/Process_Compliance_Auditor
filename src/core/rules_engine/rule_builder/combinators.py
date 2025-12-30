@@ -1,4 +1,5 @@
 """Helper functions for grouping conditions when building rules."""
+
 from core.rules_engine.model.condition import ConditionSet, Expression, NotCondition
 
 

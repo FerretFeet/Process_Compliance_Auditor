@@ -1,3 +1,5 @@
+"""Fact Processor class."""
+
 from typing import TYPE_CHECKING, Any
 
 from core.fact_processor.fact_registry import FactRegistry
@@ -11,7 +13,10 @@ if TYPE_CHECKING:
 
 
 class FactProcessor:
+    """Fact Processor class."""
+
     def __init__(self, fact_registry: FactRegistry | None = None) -> None:
+        """Initialize the FactProcessor."""
         self._all_facts: dict[str, FactSpec] | None = (
             fact_registry.all_facts() if fact_registry else None
         )
@@ -54,7 +59,8 @@ class FactProcessor:
         Get all fact data from snapshots.
 
         Args:
-            snapshots (dict[str, list[object | dict]]): A dict of key (snapshot_source) value list(snapshot)
+            snapshots (dict[str, list[object | dict]]): A dict of key (snapshot_source)
+                    value list(snapshot)
 
         Returns:
             dict[str, dict[str, Any]]: A dict of key (source) value FactSheet
@@ -64,15 +70,13 @@ class FactProcessor:
 
         """
         factsheets = {}
-        for src, snapshots in snapshots.items():
-            # TODO: Limited to one snapshot per source
-            # Unsure if worth it to implement multi snapshot per source for multiple processes.
-            # Disregard for now
-            # 12/26/2025
+        for src, snapshotslist in snapshots.items():
+            # TODO(BW, 2025-12-26): Support multiple snapshots # noqa: FIX002, TD003
+            #  per source for multiple processes
 
             factsheets[src] = {}
             facts = self.get_facts_by_source(src)
-            for snapshot in snapshots:
+            for snapshot in snapshotslist:
                 for fact in facts.values():
                     try:
                         factsheets[src][fact.path] = resolve_path(snapshot, fact.path)

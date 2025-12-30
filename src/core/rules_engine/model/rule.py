@@ -70,7 +70,7 @@ class Rule:
         return f"{prefix}-{numeric_id}"
 
     @classmethod
-    def from_toml(cls, toml_data: dict) -> Rule: # noqa: PLR0915, PLR0912, C901
+    def from_toml(cls, toml_data: dict) -> Rule:  # noqa: PLR0915, PLR0912, C901
         """
         Create a Rule object from a TOML dictionary.
 

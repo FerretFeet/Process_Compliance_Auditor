@@ -1,3 +1,5 @@
+"""Base class for all snapshot classes."""
+
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -9,6 +11,8 @@ R = TypeVar("R")
 
 @dataclass
 class BaseSnapshot(ABC):
+    """Base class for all snapshot classes."""
+
     snapshot_time: float = field(default_factory=lambda: time.time())
     metadata: dict[str, Any] = field(default_factory=dict)
 

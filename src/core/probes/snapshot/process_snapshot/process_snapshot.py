@@ -1,4 +1,5 @@
-# process_snapshot.py
+"""Process Snapshot."""
+
 import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -6,21 +7,23 @@ from typing import TYPE_CHECKING, Any
 from core.probes.snapshot.base import BaseSnapshot
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import psutil
 
 
-def _safe(callable_attr, default=None):
-    """Helper to safely call psutil attributes that may raise exceptions."""
+def _safe(callable_attr: Callable, default: Any = None) -> Any:  # noqa: ANN401
+    """Safely call psutil attributes that are functions."""
     try:
-        if callable(callable_attr):
-            return callable_attr()
-        return callable_attr
-    except Exception:
+        return callable_attr() if callable(callable_attr) else callable_attr
+    except Exception:  # noqa: BLE001
         return default
 
 
 @dataclass(kw_only=True)
 class ProcessSnapshot(BaseSnapshot):
+    """Data container for a psutil Process data snapshot."""
+
     pid: int
     name: str
     create_time: float
@@ -36,16 +39,20 @@ class ProcessSnapshot(BaseSnapshot):
     raw: dict[str, Any] = field(default_factory=dict)
     extensions: dict[str, Any] = field(default_factory=dict)
 
-    def add(self, key: str, value: Any) -> None:
+    def add(self, key: str, value: Any) -> None:  # noqa: ANN401
+        """Add a key and value to the snapshot. Added to snapshot.extensions."""
         self.extensions[key] = value
 
     def add_many(self, data: dict[str, Any]) -> None:
+        """Add multiple key/value pairs. Held to snapshot.extensions."""
         self.extensions.update(data)
 
-    def section(self, name: str) -> Any:
+    def section(self, name: str) -> Any:  # noqa: ANN401
+        """Get the value of a section."""
         return getattr(self, name)
 
     def as_dict(self) -> dict[str, Any]:
+        """Return the snapshot as a dictionary."""
         return {
             "pid": self.pid,
             "name": self.name,
@@ -63,8 +70,7 @@ class ProcessSnapshot(BaseSnapshot):
 
     @classmethod
     def from_source(cls, proc: psutil.Process) -> ProcessSnapshot:
-        # We use 'cls' so that if you subclass this,
-        # it creates the correct child type.
+        """Initialize the snapshot data from its source."""
         return cls(
             pid=proc.pid,
             name=_safe(proc.name, "unknown"),
@@ -74,6 +80,8 @@ class ProcessSnapshot(BaseSnapshot):
 
 @dataclass
 class CpuSnapshot:
+    """Sub-group for cpu related data."""
+
     percent: float | None
     times: Any
     affinity: list[int] | None
@@ -82,6 +90,8 @@ class CpuSnapshot:
 
 @dataclass
 class MemorySnapshot:
+    """Sub-group for memory related data."""
+
     percent: float | None
     info: Any
     full_info: Any

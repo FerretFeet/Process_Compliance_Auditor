@@ -1,4 +1,3 @@
-
 import pytest
 
 from core.fact_processor.fact_registry import FactRegistry

@@ -112,7 +112,10 @@ class TestMainE2E:
         # Real FactProcessor
         fact_registry = FactRegistry()
         fact_registry.register_raw(
-            path="age", type_=int, source=SourceEnum.PROCESS, allowed_operators=set(Operator),
+            path="age",
+            type_=int,
+            source=SourceEnum.PROCESS,
+            allowed_operators=set(Operator),
         )
 
         fact_processor = FactProcessor(fact_registry)
@@ -139,7 +142,7 @@ class TestMainE2E:
             name="AgeRule",
             description="Checks age",
             condition=cond("age == 42"),
-            action=Action(name="noop", execute=lambda : None),
+            action=Action(name="noop", execute=lambda: None),
             source=SourceEnum.PROCESS,
         )
 
@@ -147,7 +150,7 @@ class TestMainE2E:
             name="AgeRule",
             description="Checks age",
             condition=cond("age == 50"),
-            action=Action(name="noop", execute=lambda : None),
+            action=Action(name="noop", execute=lambda: None),
             source=SourceEnum.PROCESS,
         )
 
@@ -187,7 +190,6 @@ class TestMainE2E:
                 cli=cli_context,
             ),
         )
-
 
         # Patch RunCondition to run the loop exactly once
         with patch.object(main, "run_condition", autospec=True) as mock_rc:

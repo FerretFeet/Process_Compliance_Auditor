@@ -1,1 +1,1 @@
-from .compliance_engine import ComplianceEngine
+from .compliance_engine import ComplianceEngine as ComplianceEngine

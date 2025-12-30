@@ -1,5 +1,7 @@
+"""Union Type for Rule Conditions."""
+
 from __future__ import annotations
 
-from typing import Union
+from core.rules_engine.model.condition import Condition, ConditionSet, NotCondition
 
-Expression = Union["Condition", "NotCondition", "ConditionSet"]
+Expression = Condition | NotCondition | ConditionSet

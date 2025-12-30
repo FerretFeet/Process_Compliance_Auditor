@@ -19,8 +19,8 @@ class TestRuleBuilderBase:
         self.vip = Condition("membership", Operator.EQ, "vip")
         self.region_allowed = Condition("region", Operator.IN, "['US', 'EU']")
 
-        self.grant_access = Action("grant_access", lambda : None)
-        self.block_access = Action("block_access", lambda : None)
+        self.grant_access = Action("grant_access", lambda: None)
+        self.block_access = Action("block_access", lambda: None)
 
 
 class TestCondParsing(TestRuleBuilderBase):
@@ -114,7 +114,7 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
             .define("flagged_user", "Inline lambda")
             .from_(SourceEnum.PROCESS.value)
             .when(self.adult)
-            .then(lambda : captured.update({"executed": True}))
+            .then(lambda: captured.update({"executed": True}))
         )
         assert isinstance(rule.action, Action)
         rule.action()
@@ -204,14 +204,16 @@ class TestRuleBuilderChaining(TestRuleBuilderBase):
         assert not_conditions[0].condition == self.vip
 
         # Description should reflect the NOT
-        expected_describe = (f"({self.adult.describe()} AND NOT ({self.vip.describe()})"
-                             f" AND {self.region_allowed.describe()})")
+        expected_describe = (
+            f"({self.adult.describe()} AND NOT ({self.vip.describe()})"
+            f" AND {self.region_allowed.describe()})"
+        )
         assert rule.condition.describe() == expected_describe
 
 
 # Dummy model and action for testing
 adult = Condition("age", Operator.GTE, "18")
-grant_access = Action(name="grant", execute=lambda : None)
+grant_access = Action(name="grant", execute=lambda: None)
 
 
 class TestRuleBuilderGroups:
@@ -255,7 +257,7 @@ class TestRuleBuilderGroups:
 
 # Dummy objects for testing
 adult = Condition("age", Operator.GTE, "18")
-grant_access = Action(name="grant", execute=lambda : None)
+grant_access = Action(name="grant", execute=lambda: None)
 
 
 class TestRuleBuilderAllAttributesDynamic:
@@ -294,9 +296,9 @@ class TestRuleBuilderAllAttributesDynamic:
                 default_value = None  # no default
 
             # Fail if value is None
-            assert value is not None, (
-                f"Rule model '{field_info.name}' is not set via builder: value is None"
-            )
+            assert (
+                value is not None
+            ), f"Rule model '{field_info.name}' is not set via builder: value is None"
 
             # Fail if value equals the default
             assert value != default_value, (

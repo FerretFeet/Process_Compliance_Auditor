@@ -1,3 +1,6 @@
+"""Fact registry."""
+
+import typing
 from typing import TYPE_CHECKING, Any
 
 from core.fact_processor.available_facts.process_facts import PROCESS_FACTS
@@ -9,10 +12,12 @@ if TYPE_CHECKING:
 
 
 class FactRegistry:
-    _registry: dict[str, FactSpec] = {}
+    """Registry of all known possible fact specifications."""
+
+    _registry: typing.ClassVar[dict[str, FactSpec]] = {}
 
     @classmethod
-    def register_raw(
+    def register_raw(  # noqa: PLR0913
         cls,
         path: str,
         type_: type,
@@ -20,7 +25,8 @@ class FactRegistry:
         allowed_operators: set[Operator],
         description: str = "",
         allowed_values: set[str] | None = None,
-    ) -> None:
+    ) -> None:  # creates instance of rule in fun, params required.
+        """Register a fact from data."""
         if path in cls._registry:
             msg = f"Fact '{path}' is already registered"
             raise ValueError(msg)
@@ -37,6 +43,7 @@ class FactRegistry:
 
     @classmethod
     def register_fact(cls, fact: FactSpec) -> None:
+        """Register a fact object in cls._registry."""
         if fact.path in cls._registry:
             msg = f"Fact '{fact.path}' is already registered"
             raise ValueError(msg)
@@ -44,6 +51,7 @@ class FactRegistry:
 
     @classmethod
     def get_fact(cls, path: str) -> FactSpec:
+        """Get a fact by its path."""
         if path not in cls._registry:
             msg = f"Fact '{path}' is not registered"
             raise KeyError(msg)
@@ -51,10 +59,12 @@ class FactRegistry:
 
     @classmethod
     def all_facts(cls) -> dict[str, FactSpec]:
+        """Return all registered facts."""
         return dict(cls._registry)
 
     @classmethod
-    def validate(cls, path: str, value: Any) -> bool:
+    def validate(cls, path: str, value: Any) -> bool:  # noqa: ANN401
+        """Ensure that a value matches the matching fact type."""
         spec = cls.get_fact(path)
         if value is None:
             return True  # optional: allow None
@@ -69,6 +79,7 @@ class FactRegistry:
 
 
 def register_defaults() -> None:
+    """Register the built in facts."""
     for fact in PROCESS_FACTS:
         FactRegistry.register_fact(fact)
 

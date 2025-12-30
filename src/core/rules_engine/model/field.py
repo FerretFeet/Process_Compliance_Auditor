@@ -1,10 +1,12 @@
 """FieldRef class."""
+
 from dataclasses import dataclass
 from typing import TypeVar
 
 from shared.utils.resolve_path import resolve_path
 
 T = TypeVar("T")
+
 
 @dataclass(frozen=True)
 class FieldRef[T]:

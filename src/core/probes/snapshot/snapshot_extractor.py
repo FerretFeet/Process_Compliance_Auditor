@@ -1,3 +1,5 @@
+"""Module to extract S attrs from a mapping R."""
+
 from typing import TYPE_CHECKING, TypeVar
 
 from core.probes.snapshot.base import BaseSnapshot
@@ -13,6 +15,7 @@ class SnapshotExtractor[S: BaseSnapshot, R]:
     """Class to extract S attrs from a mapping R."""
 
     def __init__(self) -> None:
+        """Initialize SnapshotExtractor."""
         self.collectors: list[Callable[[R, S], None]] = []
 
     def register_collector(self, collector: Callable[[R, S], None]) -> SnapshotExtractor:
@@ -21,7 +24,7 @@ class SnapshotExtractor[S: BaseSnapshot, R]:
         return self
 
     def apply(self, source: R, snapshot: S) -> S:
-        """Applies the registered collectors to the snapshot."""
+        """Apply the registered collectors to the snapshot."""
         for collector in self.collectors:
             collector(source, snapshot)
         return snapshot

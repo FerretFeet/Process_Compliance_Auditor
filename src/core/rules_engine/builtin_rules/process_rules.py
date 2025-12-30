@@ -1,3 +1,5 @@
+"""Built-in rules for process probes."""
+
 from core.rules_engine.rule_builder.rule_builder import RuleBuilder
 
 rule1 = (
@@ -5,7 +7,7 @@ rule1 = (
     .define("Cpu Percent", "Cpu usage is above percentage value")
     .from_("process")
     .when("cpu.percent > 60")
-    .then(lambda: print("Rule 1 Failed"))
+    .then(lambda: print("Rule 1 Failed"))  # noqa: T201
 )
 
 rule2 = (
@@ -13,7 +15,7 @@ rule2 = (
     .define("Cpu Percent", "Cpu usage is below percentage value")
     .from_("process")
     .when("cpu.percent < 60")
-    .then(lambda: print("Rule 2 Failed"))
+    .then(lambda: print("Rule 2 Failed"))  # noqa: T201
 )
 
 rule3 = (
@@ -25,7 +27,7 @@ rule3 = (
     .from_("process")
     .when("cpu.percent < 60")
     .and_("memory.percent < 60")
-    .then(lambda: print("Rule 3 Failed"))
+    .then(lambda: print("Rule 3 Failed"))  # noqa: T201
 )
 
 rule4 = (
@@ -34,5 +36,5 @@ rule4 = (
     .from_("process")
     .when("cpu.percent < 60")
     .and_("memory.percent > 60")
-    .then(lambda: print("Rule 4 Failed"))
+    .then(lambda: print("Rule 4 Failed"))  # noqa: T201
 )

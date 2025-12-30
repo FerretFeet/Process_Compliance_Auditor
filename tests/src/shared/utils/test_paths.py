@@ -1,4 +1,3 @@
-
 import pytest
 
 from shared.utils.paths import find_project_root

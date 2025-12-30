@@ -1,4 +1,5 @@
 """Helper functions for parsing rules."""
+
 import re
 
 from core.fact_processor.fact_registry import FactRegistry

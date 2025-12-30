@@ -1,4 +1,3 @@
-
 import pytest
 
 from core.fact_processor.fact_processor import FactProcessor
@@ -69,7 +68,6 @@ class TestParseFacts:
     def test_parse_facts_missing_path_strict_raises(self, processor, monkeypatch):
         processor.get_all_facts()
 
-
         snapshots = {SourceEnum.PROCESS.value: [{"age": 25}]}
 
         with pytest.raises(FactNotFoundError):
@@ -79,7 +77,6 @@ class TestParseFacts:
 class TestLogging:
     def test_warning_logged_on_invalid_path(self, processor, monkeypatch):
         processor.get_all_facts()
-
 
         snapshots = {SourceEnum.PROCESS.value: [{"age": 40}]}
         with pytest.raises(FactNotFoundError):

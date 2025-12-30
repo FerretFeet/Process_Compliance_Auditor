@@ -1,4 +1,3 @@
-
 import pytest
 
 from core.rules_engine.model import GroupOperator, Operator
@@ -16,7 +15,9 @@ class TestActionBase:
             self.called = True
 
         self.action = Action(
-            name="SampleAction", execute=sample_execute, description="A test action",
+            name="SampleAction",
+            execute=sample_execute,
+            description="A test action",
         )
         self.facts = {}
 
@@ -141,7 +142,7 @@ class TestRule(TestActionBase):
                     },
                 ],
             },
-            "action": lambda : None,
+            "action": lambda: None,
             "source": "process",
         }
 

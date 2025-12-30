@@ -1,3 +1,5 @@
+"""Facts available from a psutil Process."""
+
 from core.rules_engine.model.rule import SourceEnum
 from shared._common.facts import FactSpec
 from shared._common.operators import BOOL_OPS, COLLECTION_OPS, NUMERIC_OPS, STRING_OPS, STRUCT_OPS

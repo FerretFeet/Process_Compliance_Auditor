@@ -1,3 +1,5 @@
+"""Audited Process."""
+
 import contextlib
 import os
 import signal
@@ -6,8 +8,6 @@ from typing import TYPE_CHECKING
 
 import psutil
 
-from core.probes.snapshot.process_snapshot.collectors import DEFAULT_COLLECTORS
-from core.probes.snapshot.process_snapshot.process_snapshot import ProcessSnapshot, _safe
 from shared.custom_exceptions import ProcessNotCreatedError
 from shared.services import logger
 
@@ -21,6 +21,7 @@ class AuditedProcess:
     def __init__(self, pid_or_command: list[str] | int) -> None:
         """
         Initialize the AuditedProcess.
+
         - If `pid_or_command` is an int, attach to an existing process using its PID.
         - If `pid_or_command` is a list of strings, spawn a new process using the command.
         """
@@ -34,7 +35,7 @@ class AuditedProcess:
             self._spawn_process(pid_or_command)
         else:
             msg = "Argument must be an int (PID) or a list of command arguments"
-            raise ValueError(msg)
+            raise TypeError(msg)
 
     def is_alive(self) -> bool:
         """Check if the process is alive."""
@@ -51,14 +52,14 @@ class AuditedProcess:
             try:
                 self.process = psutil.Process(self.pid)
                 logger.info(f"Attached to process {self.pid}")
-            except psutil.NoSuchProcess:
+            except psutil.NoSuchProcess as err:
                 msg = f"Process with PID {self.pid} does not exist."
                 logger.warning(msg)
-                raise ProcessNotCreatedError(msg)
-            except psutil.AccessDenied:
+                raise ProcessNotCreatedError(msg) from err
+            except psutil.AccessDenied as err:
                 msg = f"Accessed denied for process with PID {self.pid}."
                 logger.warning(msg)
-                raise ProcessNotCreatedError(msg)
+                raise ProcessNotCreatedError(msg) from err
         else:
             logger.warning("PID is not set. Cannot initialize process.")
 
@@ -79,7 +80,7 @@ class AuditedProcess:
         Returns True if the process exited, False otherwise.
         """
         if not self.created:
-            logger.info(f"Not shutting down external process {self.pid}")
+            logger.info("Not shutting down external process %s", self.pid)
             return False
 
         if not self.process:
@@ -90,40 +91,46 @@ class AuditedProcess:
             self.process.terminate()
             try:
                 self.process.wait(timeout=timeout)
-                return True
             except psutil.TimeoutExpired:
                 if not force:
-                    logger.warning(f"Process {self.pid} did not exit within {timeout}s")
+                    logger.warning(
+                        "Process %s did not exit within %ss",
+                        self.pid,
+                        timeout,
+                    )
                     return False
 
-            # Phase 2: forced termination
-            logger.warning(f"Forcing kill of process {self.pid}")
-            self.process.kill()
-            self.process.wait(timeout=timeout)
-            return True
+                # Phase 2: forced termination
+                logger.warning("Forcing kill of process %s", self.pid)
+                self.process.kill()
+                self.process.wait(timeout=timeout)
 
         except psutil.NoSuchProcess:
+            return True
+        else:
             return True
 
     def _kill_proc_tree(
         self,
-        pid,
+        pid: int,
         *,
         sig: signal.Signals = signal.SIGTERM,
         include_parent: bool = True,
         timeout: float | None = None,
         on_terminate: Callable[[psutil.Process], object | None] | None = None,
-    ):
+    ) -> tuple[list[psutil.Process], list[psutil.Process]]:
         """
-        Kill a process tree (including grandchildren) with signal
-        "sig" and return a (gone, still_alive) tuple.
+        Kill a process tree with signal "sig" and return a (gone, still_alive) tuple.
+
         "on_terminate", if specified, is a callback function which is
         called as soon as a child terminates.
         """
         if pid is None:
-            msg = "Cannot kill process: PID is None"
+            msg = "Cannot kill process: PID is None."
             raise ValueError(msg)
-        assert pid != os.getpid(), "won't kill myself"
+        if pid == os.getpid():
+            msg = "Refusing to kill the current process."
+            raise RuntimeError(msg)
         parent = psutil.Process(pid)
         children = parent.children(recursive=True)
         if include_parent:
@@ -133,32 +140,3 @@ class AuditedProcess:
                 p.send_signal(sig)
         gone, alive = psutil.wait_procs(children, timeout=timeout, callback=on_terminate)
         return gone, alive
-
-    def ____snapshot(self, collectors=None) -> ProcessSnapshot | None:
-        proc = self.process
-        if not proc:
-            return None
-
-        collectors = collectors or DEFAULT_COLLECTORS
-
-        try:
-            with proc.oneshot():
-                snap = ProcessSnapshot(
-                    pid=proc.pid,
-                    name=proc.name(),
-                    create_time=proc.create_time(),
-                    is_running=proc.is_running(),
-                )
-
-                for collect in collectors:
-                    try:
-                        collect(proc, snap)
-                    except Exception as e:
-                        logger.debug(f"Collector failed: {collect.__name__}: {e}")
-
-                snap.raw = _safe(lambda: proc.as_dict(attrs=None), {})
-                return snap
-
-        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-            logger.warning(f"Snapshot failed for PID {proc.pid}: {e}")
-            return None

@@ -1,4 +1,3 @@
-
 import pytest
 
 from shared.utils import cfg
@@ -37,8 +36,6 @@ def test_load_config(mock_config_file):
     assert config["app_name"] == "TestApp"
     assert config["debug"] is None  # Check that "None" became None
     assert "os" in config  # Check that default OS was added
-
-
 
 
 def test_clear_functionality(mock_config_file):

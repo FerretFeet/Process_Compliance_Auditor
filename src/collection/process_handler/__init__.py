@@ -1,1 +1,1 @@
-from .process_handler import ProcessHandler
+from .process_handler import ProcessHandler as ProcessHandler

@@ -1,3 +1,5 @@
+"""Process Handler."""
+
 from collection.process_handler.audited_process import AuditedProcess
 from shared.services import logger
 
@@ -23,22 +25,13 @@ class ProcessHandler:
             try:
                 if process.is_alive():
                     active_count += 1
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to check if process is alive: {e}")
         return active_count
 
-    def get_processes(self):
+    def get_processes(self) -> list[AuditedProcess]:
+        """Return the list of all processes."""
         return self._processes
-
-    # def get_snapshot(self) -> list[ProcessSnapshot]:
-    #     """Return a snapshot of all tracked processes."""
-    #     snapshots: list[ProcessSnapshot] = []
-    #     for process in self._processes:
-    #         try:
-    #             snapshots.append(process.snapshot())
-    #         except Exception as e:
-    #             logger.warning(f"Failed to take snapshot for process {process}: {e}")
-    #     return snapshots
 
     def shutdown_all(self) -> None:
         """Shutdown all tracked processes."""
@@ -47,8 +40,14 @@ class ProcessHandler:
                 process.shutdown()
             except Exception as e:
                 logger.warning(f"Failed to shutdown process {process}: {e}")
+                raise
 
     def remove_all(self) -> None:
+        """
+        Clear tracked processes.
+
+        Warning: Does not shutdown a created process.
+        """
         self._processes = []
 
 

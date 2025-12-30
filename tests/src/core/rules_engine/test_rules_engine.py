@@ -40,7 +40,9 @@ def mock_fact_provider(fake_fact_registry):
 
 def test_builtin_rules_loaded(sample_rule, mock_fact_provider):
     engine = RulesEngine(
-        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"),
+        mock_fact_provider,
+        builtin_rules=[sample_rule],
+        toml_rules_path=pathlib.Path("/dev/null"),
     )
     assert sample_rule.id in engine.rules
     assert engine.rules[sample_rule.id] == sample_rule
@@ -81,7 +83,9 @@ source = "process"
 
 def test_filter_rules_by_id_and_name(sample_rule, mock_fact_provider):
     engine = RulesEngine(
-        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"),
+        mock_fact_provider,
+        builtin_rules=[sample_rule],
+        toml_rules_path=pathlib.Path("/dev/null"),
     )
 
     filtered = engine.match_rules(engine.rules, [sample_rule.id])
@@ -99,7 +103,9 @@ def test_filter_rules_by_id_and_name(sample_rule, mock_fact_provider):
 
 def test_filter_rules_no_filters_returns_all(sample_rule, mock_fact_provider):
     engine = RulesEngine(
-        mock_fact_provider, builtin_rules=[sample_rule], toml_rules_path=pathlib.Path("/dev/null"),
+        mock_fact_provider,
+        builtin_rules=[sample_rule],
+        toml_rules_path=pathlib.Path("/dev/null"),
     )
     filtered = engine.match_rules(engine.rules, None)
     assert filtered == engine.rules

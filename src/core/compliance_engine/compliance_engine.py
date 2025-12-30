@@ -1,8 +1,9 @@
+"""Compliance Engine."""
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from core.rules_engine.eval.condition_evaluator import ConditionEvaluator
-from core.rules_engine.eval.condition_evaluator import ConditionEvaluator as ce
 
 if TYPE_CHECKING:
     import datetime
@@ -26,10 +27,17 @@ class FailEvent:
 
 
 class ComplianceEngine:
-    def __init__(self, condition_evaluator: ConditionEvaluator = ce) -> None:
+    """
+    Compliance Engine class.
+
+    Checks that facts match rules.
+    """
+
+    def __init__(self, condition_evaluator: ConditionEvaluator = ConditionEvaluator) -> None:
+        """Initialize the ComplianceEngine class."""
         self.condition_evaluator = condition_evaluator
 
-    def run(self, rules: dict[str, Rule], factsheets: dict[str, dict[str, Any]]):
+    def run(self, rules: dict[str, Rule], factsheets: dict[str, dict[str, Any]]) -> dict:
         """
         Check that facts are as defined in Rules.
 

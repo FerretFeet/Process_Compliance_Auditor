@@ -1,3 +1,5 @@
+"""Helper methods to evaluate conditions."""
+
 from typing import Any
 
 from core.rules_engine.model.condition import Condition, ConditionSet, Expression, NotCondition
@@ -6,12 +8,11 @@ from shared._common.operators import GroupOperator
 
 
 class ConditionEvaluator:
+    """Container of methods for evaluating conditions."""
+
     @staticmethod
     def evaluate(expression: Expression, facts: dict) -> bool:
-        """
-        Entry point for evaluation. Routes to the specific evaluator
-        based on the expression type.
-        """
+        """Entry point for evaluation."""
         if isinstance(expression, Condition):
             return ConditionEvaluator._evaluate_single(expression, facts)
 
@@ -27,13 +28,13 @@ class ConditionEvaluator:
 
     @staticmethod
     def _evaluate_single(condition: Condition, facts: dict) -> bool:
-        """Handles a standard leaf-node Condition."""
+        """Handle a standard leaf-node Condition."""
         field_value = condition.field.evaluate(facts)
         return ConditionEvaluator.apply_operator(condition.operator, field_value, condition.value)
 
     @staticmethod
     def _evaluate_set(condition_set: ConditionSet, facts: dict) -> bool:
-        """Handles AND (ALL) and OR (ANY) logic."""
+        """Handle AND (ALL) and OR (ANY) logic."""
         results = (ConditionEvaluator.evaluate(c, facts) for c in condition_set.conditions)
 
         if condition_set.group_operator == GroupOperator.ALL:
@@ -45,7 +46,7 @@ class ConditionEvaluator:
         raise ValueError(msg)
 
     @staticmethod
-    def apply_operator(operator: Operator, left: Any, right: Any) -> bool:
+    def apply_operator(operator: Operator, left: Any, right: Any) -> bool:  # noqa: ANN401
         """Map your Operator enum to actual Python operations."""
         if operator == Operator.GT:
             return left > right
