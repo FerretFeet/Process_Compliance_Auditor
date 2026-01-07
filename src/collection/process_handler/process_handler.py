@@ -37,7 +37,7 @@ class ProcessHandler:
         """Shutdown all tracked processes safely."""
         for process in self._processes:
             try:
-                result = process.shutdown(timeout=timeout, force=force)
+                result = process.shutdown(timeout=timeout)
                 if result:
                     logger.info("Process %s shutdown successfully", process.pid)
                 else:

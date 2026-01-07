@@ -62,6 +62,7 @@ class RunCondition:
 
         """
         if self.process_num_active_caller() == 0:
+            logger.info(f'All process now inactive.')
             return False
         return bool(not self.time_limit or self.time_limit > time.monotonic() - self.start)
 
@@ -153,6 +154,7 @@ class Main:
                                    self.cli_context.time_limit - int(elapsed)
                                    )
                                ))
+            print(f'While Loop Complete')
 
         except KeyboardInterrupt:
             pass

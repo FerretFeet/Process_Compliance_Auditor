@@ -69,6 +69,7 @@ class AuditedProcess:
             command,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+            start_new_session=True,
         )
         self.created = True
         self.pid = self.process.pid
@@ -90,7 +91,7 @@ class AuditedProcess:
             # Phase 1: graceful termination
             gone, alive = self._kill_proc_tree(  # noqa: RUF059
                 self.pid,
-                sig=signal.SIGKILL,
+                sig=signal.SIGTERM,
                 include_parent=True,
                 timeout=timeout,
             )
