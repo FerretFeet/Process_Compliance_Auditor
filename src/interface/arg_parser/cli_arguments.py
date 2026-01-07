@@ -65,7 +65,6 @@ class CliArguments:
         ),
         _CliArgument(
             name_or_flags=("-c", "--create-process"),
-            nargs=argparse.REMAINDER,
             type=str,
             help="Executable and arguments to create a new process.",
         ),

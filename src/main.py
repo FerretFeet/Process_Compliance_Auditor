@@ -124,6 +124,7 @@ class Main:
         - Periodically check compliance
         - Record output
         """
+        logger.info(f'Begin')
         self.setup()
 
         try:
@@ -147,15 +148,18 @@ class Main:
                         print(f"\t{_val.name} : {_val.description}\n")  # noqa: T201
 
                 elapsed = time.monotonic() - loop_start
-                time.sleep(max(0, self.run_condition.interval - int(elapsed)))
+                time.sleep(max(0,
+                               min(self.run_condition.interval - int(elapsed),
+                                   self.cli_context.time_limit - int(elapsed)
+                                   )
+                               ))
 
         except KeyboardInterrupt:
-            # Do whatever i need to safely handle this
-            # allow multiple interrupts? Daemon mode?
-            logger.info("Keyboard Interrupt, Shutting down")
+            pass
         except FactNotFoundError as err:
             logger.error(err)
         finally:
+            logger.info(f'Shutting down')
             if self.cli_context.create_process_flag:
                 # python created the process
                 self.process_handler.shutdown_all()

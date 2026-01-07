@@ -1,6 +1,7 @@
 """Argument Parser for Cli Arguments."""
 
 import argparse
+import shlex
 from dataclasses import dataclass
 from typing import Any
 
@@ -59,12 +60,17 @@ class CliArgParser:
         return not self._get_argument("pid")
 
     def get_process_args(self) -> list[str] | int:
-        """Return either the process ID or the commands to begin the process."""
-        return (
-            self._get_argument("pid")
-            if self._get_argument("pid")
-            else self._get_argument("create-process")
-        )
+        pid = self._get_argument("pid")
+        if pid:
+            return pid
+
+        cmd_str = self._get_argument("create-process")
+        if cmd_str:
+            # If input is: -c "firefox -no-remote -P tmp"
+            # shlex.split gives: ['firefox', '-no-remote', '-P', 'tmp']
+            return shlex.split(cmd_str)
+
+        return []
 
     def get_rules_args(self) -> list[str | int] | None:
         """Return a list of rule_builder names or rule_builder ids, potentially intermingled."""
@@ -72,6 +78,7 @@ class CliArgParser:
 
     def get_time_limit_arg(self) -> int | None:
         """Return the time limit for this application, in seconds."""
+        print(f'TIME LIMIT ARG {self._get_argument("time-limit")}')
         return self._get_argument("time-limit")
 
     def get_interval_arg(self) -> int | None:

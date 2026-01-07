@@ -90,7 +90,7 @@ class AuditedProcess:
             # Phase 1: graceful termination
             gone, alive = self._kill_proc_tree(  # noqa: RUF059
                 self.pid,
-                sig=signal.SIGTERM,
+                sig=signal.SIGKILL,
                 include_parent=True,
                 timeout=timeout,
             )
