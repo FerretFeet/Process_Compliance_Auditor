@@ -141,7 +141,7 @@ class Main:
                 # the expected format and try to parse
 
                 output = self.compliance_engine.run(self.active_rules, facts)
-                print("\n\t==============Compliance Report:\t==============\n\n")  # noqa: T201
+                print("\n\t==============\tCompliance Report:\t==============\n\n")  # noqa: T201
                 for k, v in output.items():
                     print(f"{k}:\n")  # noqa: T201
                     for _val in v:
